@@ -80,45 +80,6 @@ static func capsule(r: float, h: float) -> CapsuleMesh:
 	return c
 
 
-# ------------------------------------------------------------ caçador
-
-## Retorna {root, body, arm, blade_mat, legs:[pivô, pivô]}
-static func build_player(armor_color: Color, blade_color: Color) -> Dictionary:
-	var root := Node3D.new()
-	var body := Node3D.new()
-	root.add_child(body)
-	var armor := mat(armor_color)
-	var trim := mat(armor_color.darkened(0.45))
-	var skin := mat(Color("#e9b88a"))
-	var dark := mat(Color("#2b2b38"))
-
-	add_mesh(body, capsule(0.42, 1.25), armor, Vector3(0, 1.2, 0))
-	add_mesh(body, box(Vector3(0.95, 0.22, 0.55)), trim, Vector3(0, 1.62, 0))  # ombreiras
-	add_mesh(body, sphere(0.3), skin, Vector3(0, 2.02, 0.02))
-	add_mesh(body, sphere(0.34, 10, 6), trim, Vector3(0, 2.1, -0.06), Vector3(1, 0.8, 1))  # capuz
-	add_mesh(body, box(Vector3(0.7, 0.12, 0.5)), dark, Vector3(0, 0.95, 0))  # cinto
-	add_mesh(body, box(Vector3(0.55, 0.75, 0.08)), trim, Vector3(0, 1.15, -0.4), Vector3.ONE, Vector3(-0.15, 0, 0))  # capa
-
-	var legs: Array[Node3D] = []
-	for side in [-1, 1]:
-		var pivot := Node3D.new()
-		pivot.position = Vector3(0.18 * side, 0.7, 0)
-		add_mesh(pivot, cylinder(0.13, 0.11, 0.7, 6), dark, Vector3(0, -0.35, 0))
-		add_mesh(pivot, box(Vector3(0.2, 0.12, 0.32)), trim, Vector3(0, -0.68, 0.06))
-		body.add_child(pivot)
-		legs.append(pivot)
-
-	var arm := Node3D.new()
-	arm.position = Vector3(0.5, 1.5, 0.05)
-	add_mesh(arm, cylinder(0.1, 0.09, 0.55, 6), armor, Vector3(0, 0, 0.25), Vector3.ONE, Vector3(PI / 2, 0, 0))
-	var blade_mat := mat(blade_color, blade_color, 0.4)
-	add_mesh(arm, box(Vector3(0.1, 0.22, 1.9)), blade_mat, Vector3(0, 0, 1.45))
-	add_mesh(arm, box(Vector3(0.45, 0.09, 0.1)), dark, Vector3(0, 0, 0.5))
-	body.add_child(arm)
-
-	return {"root": root, "body": body, "arm": arm, "blade_mat": blade_mat, "legs": legs}
-
-
 # ------------------------------------------------------------ feras
 
 ## Retorna {pose, head, tail_root, tail_segments, legs, spikes, eyes_mat, body_mats, part_mats, anchors}
@@ -252,7 +213,7 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	var sun := DirectionalLight3D.new()
 	sun.light_color = Color("#fff1d6")
 	sun.light_energy = 0.75
-	sun.shadow_enabled = true
+	sun.shadow_enabled = Settings.preset().sombras
 	sun.directional_shadow_max_distance = 60.0
 	sun.rotation = Vector3(deg_to_rad(-50), deg_to_rad(35), 0)
 	parent.add_child(sun)
@@ -350,7 +311,7 @@ void fragment() {
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = blade
-	var total := 3000
+	var total: int = Settings.preset().grama
 	mm.instance_count = total
 	for i in total:
 		var a := rng.randf() * TAU
@@ -378,6 +339,32 @@ static func build_gather_node(kind: String) -> Node3D:
 	return g
 
 
+## Sombra redonda simples (barata) para quando as sombras em tempo real estão desligadas.
+static func blob_shadow(radius_x: float, radius_z: float) -> MeshInstance3D:
+	var tex := GradientTexture2D.new()
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.0, 0.5)
+	var g := Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.45))
+	g.set_color(1, Color(0, 0, 0, 0.0))
+	tex.gradient = g
+	tex.width = 64
+	tex.height = 64
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_texture = tex
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(radius_x * 2.0, radius_z * 2.0)
+	var mi := MeshInstance3D.new()
+	mi.mesh = pm
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.position.y = 0.04
+	return mi
+
+
 ## Indicador de ataque no chão: contorno + preenchimento que cresce até o golpe.
 static func build_telegraph(tipo: String, raio: float, angulo: float, comprimento: float) -> Dictionary:
 	var group := Node3D.new()
@@ -393,7 +380,7 @@ static func build_telegraph(tipo: String, raio: float, angulo: float, compriment
 	var fill := add_mesh(group, mesh, _telegraph_mat(Color(1, 0.25, 0.1, 0.5)))
 	outline.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	fill.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	fill.position.y = 0.01
+	fill.position.y = 0.03
 	group.position.y = 0.08
 	return {"group": group, "fill": fill}
 

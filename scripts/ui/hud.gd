@@ -209,7 +209,8 @@ func refresh(dt: float, player: HunterPlayer, beast: Beast, faints: int, elapsed
 	action_label.text = ("! " + b + " !") if b != "" else ""
 	var s := int(elapsed)
 	timer_label.text = "%d:%02d" % [s / 60, s % 60]
-	fps_label.text = "%d fps" % Engine.get_frames_per_second()
+	if Engine.get_process_frames() % 30 == 0:
+		fps_label.text = "%d fps" % Engine.get_frames_per_second()
 	faints_label.text = "Desmaios %d/%d" % [faints, GameData.PLAYER.desmaios_maximos]
 	for id in part_labels:
 		var st: Dictionary = beast.parts[id]

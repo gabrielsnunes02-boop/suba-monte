@@ -19,7 +19,9 @@ var _shake := 0.0
 
 func _ready() -> void:
 	camera.fov = 68.0
-	camera.far = 400.0
+	# Plano próximo maior: menos "piscadas" de profundidade em GPUs de celular.
+	camera.near = 0.3
+	camera.far = 220.0
 	camera.position = Vector3(0, 0, DISTANCE)
 	add_child(camera)
 	camera.make_current()

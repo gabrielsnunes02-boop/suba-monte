@@ -19,6 +19,10 @@ const DRINK_DUR := 0.9
 const STAGGER_DUR := 0.45
 const SOFT_LOCK_RANGE := 9.0
 const REACH := 1.9
+const LIGHT_CLIPS := ["2H_Melee_Attack_Slice", "2H_Melee_Attack_Stab", "2H_Melee_Attack_Spin"]
+const HEAVY_CLIP := "2H_Melee_Attack_Chop"
+## Fração do golpe pesado em que o personagem fica parado carregando.
+const HEAVY_WINDUP := 0.28
 
 var hunt: Hunt
 var facing := PI
@@ -31,7 +35,7 @@ var state := State.LIVRE
 var sharp := false
 
 var _perks: Array[String] = []
-var _model: Dictionary
+var _model: HunterModel
 var _t := 0.0
 var _time := 0.0
 var _last_damaged_at := -99.0
@@ -43,7 +47,6 @@ var _charge := 0.0
 var _heal_left := 0.0
 var _dodge_dir := Vector3.FORWARD
 var _knock := Vector3.ZERO
-var _walk_phase := 0.0
 
 
 func setup(h: Hunt) -> void:
@@ -55,8 +58,9 @@ func setup(h: Hunt) -> void:
 	hp = max_hp
 	var armor_color := Color("#8a6a4a") if h.armor.elemento == "neutro" else GameData.element_color(h.armor.elemento)
 	var blade_color := Color("#c9d1dc") if h.weapon.elemento == "neutro" else GameData.element_color(h.weapon.elemento)
-	_model = Models.build_player(armor_color, blade_color)
-	add_child(_model.root)
+	_model = HunterModel.new()
+	add_child(_model)
+	_model.setup(armor_color, blade_color)
 
 
 func has_perk(p: String) -> bool:
@@ -129,11 +133,11 @@ func tick(dt: float) -> void:
 			if moving:
 				_turn_to(atan2(mv.x, mv.z), dt, 6.0)
 			_charge = minf(1.0, _t / CHARGE_TIME)
-			_model.blade_mat.emission_energy_multiplier = 0.4 + _charge * 3.0
+			_model.set_blade_glow(_charge * 3.0)
 			if _charge >= 1.0 and randf() < 0.25:
-				hunt.fx.burst(_model.arm.global_position + forward() * 1.2, Color("#fff3b0"), 2, 2.0, 2.0)
+				hunt.fx.burst(_model.sword_position(), Color("#fff3b0"), 2, 2.0, 2.0)
 			if dodge:
-				_model.blade_mat.emission_energy_multiplier = 0.4
+				_model.set_blade_glow(0.0)
 				_try_dodge(mv, moving)
 			elif not held:
 				_soft_lock()
@@ -144,7 +148,7 @@ func tick(dt: float) -> void:
 				position += forward() * 1.5 * dt
 			if not _hit_done and _t >= HEAVY_HIT_AT:
 				_strike(lerpf(GameData.MOTION_PESADO_MIN, GameData.MOTION_PESADO_MAX, _charge), true)
-				_model.blade_mat.emission_energy_multiplier = 0.4
+				_model.set_blade_glow(0.0)
 			if dodge and _t > HEAVY_HIT_AT + 0.1:
 				_try_dodge(mv, moving)
 			elif _t >= HEAVY_DUR:
@@ -179,7 +183,6 @@ func tick(dt: float) -> void:
 
 	if speed_mul > 0.0 and moving:
 		position += mv * GameData.PLAYER.velocidade * speed_mul * mag * dt
-		_walk_phase += dt * 11.0 * mag
 
 	# Limites da ilha e colisão com a fera.
 	var flat := Vector2(position.x, position.z)
@@ -191,7 +194,7 @@ func tick(dt: float) -> void:
 	if state != State.CAIDO:
 		hunt.beast.push_out(self, 0.5)
 
-	_animate(moving and speed_mul > 0.0)
+	_animate(moving and speed_mul > 0.0, mag)
 
 
 ## Golpe da fera chega no jogador. Retorna "acertou", "esquivou" ou "nada".
@@ -205,7 +208,7 @@ func take_hit(raw: float, element: String, from: Vector3) -> String:
 	hp = maxf(0.0, hp - dmg)
 	_last_damaged_at = _time
 	_heal_left = 0.0
-	_model.blade_mat.emission_energy_multiplier = 0.4
+	_model.set_blade_glow(0.0)
 	hunt.fx.text(global_position + Vector3(0, 2.5, 0), "-%d" % dmg, Color("#ff6b6b"))
 	hunt.fx.burst(global_position + Vector3(0, 1.2, 0), Color("#ff4040"), 10, 5.0)
 	hunt.shake(0.35)
@@ -238,12 +241,13 @@ func _set_state(s: State) -> void:
 		_combo_queued = false
 	if s == State.CARREGANDO:
 		_charge = 0.0
+	_enter_animation(s)
 
 
 func _start_light(step: int) -> void:
 	_soft_lock()
-	_set_state(State.ATAQUE)
 	_combo = step
+	_set_state(State.ATAQUE)
 
 
 func _try_dodge(mv: Vector3, moving: bool) -> void:
@@ -320,50 +324,30 @@ func _strike(motion: float, heavy: bool) -> void:
 
 # ------------------------------------------------------------ animação
 
-func _animate(walking: bool) -> void:
-	var root: Node3D = _model.root
-	var body: Node3D = _model.body
-	var arm: Node3D = _model.arm
-	var legs: Array = _model.legs
-	root.rotation.y = facing
-	body.rotation = Vector3.ZERO
-	body.position = Vector3.ZERO
-	var swing := sin(_walk_phase) * 0.7 if walking else 0.0
-	legs[0].rotation.x = swing
-	legs[1].rotation.x = -swing
-	if walking:
-		body.position.y = absf(cos(_walk_phase)) * 0.08
-	arm.rotation = Vector3(0.9, 0.35, 0)
-
-	match state:
+## Clipes de uma vez só começam ao entrar no estado.
+func _enter_animation(s: State) -> void:
+	match s:
 		State.ATAQUE:
-			var s: Dictionary = LIGHT[_combo]
-			var p := _ease(_t / (s.hit_at + 0.06))
-			var dir := -1.0 if _combo == 1 else 1.0
-			arm.rotation = Vector3(0.15, dir * (1.7 - 3.2 * p), 0)
-			body.rotation.y = dir * (0.4 - 0.8 * p)
+			_model.play(LIGHT_CLIPS[_combo], LIGHT[_combo].dur, true, 0.05)
 		State.CARREGANDO:
-			arm.rotation = Vector3(-1.7 + sin(_t * 30.0) * 0.03 * _charge, 0.2, 0)
-			body.rotation.x = -0.15
+			_model.hold_at(HEAVY_CLIP, HEAVY_WINDUP)
 		State.PESADO:
-			var p := _ease(_t / (HEAVY_HIT_AT + 0.04))
-			arm.rotation = Vector3(-1.7 + 3.0 * p, 0.1, 0)
-			body.rotation.x = -0.15 + 0.45 * p
+			_model.resume_from(HEAVY_CLIP, HEAVY_WINDUP, HEAVY_DUR)
 		State.ESQUIVA:
-			# Rolamento em torno do centro do corpo (y = 1).
-			var p := minf(1.0, _t / (DODGE_DUR * 0.85))
-			var a := p * TAU
-			body.rotation.x = a
-			body.position = Vector3(0, 1.0 - cos(a) - sin(p * PI) * 0.45, -sin(a))
+			_model.play("Dodge_Forward", DODGE_DUR, true, 0.05)
 		State.BEBENDO:
-			arm.rotation = Vector3(1.2, 0.8, 0)
-			body.rotation.x = -0.2
+			_model.play("Use_Item", DRINK_DUR, true)
 		State.ATINGIDO:
-			body.rotation.x = -0.4 * (1.0 - _t / STAGGER_DUR)
+			_model.play("Hit_A", STAGGER_DUR, true, 0.05)
 		State.CAIDO:
-			body.rotation.x = -PI / 2
-			body.position.y = 0.35
+			_model.play("Death_A", 1.2, true, 0.05)
 
 
-static func _ease(x: float) -> float:
-	return 1.0 - pow(1.0 - clampf(x, 0.0, 1.0), 3.0)
+## Clipes contínuos (parado/correndo) e direção do corpo, a cada quadro.
+func _animate(walking: bool, mag: float) -> void:
+	_model.rotation.y = facing
+	if state == State.LIVRE:
+		if walking:
+			_model.play("Running_A", 0.0, false, 0.15, clampf(mag * 1.15, 0.6, 1.25))
+		else:
+			_model.play("2H_Melee_Idle", 0.0, false, 0.2)

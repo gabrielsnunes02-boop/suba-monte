@@ -41,6 +41,9 @@ func setup(profile: Dictionary, fera_id: String) -> void:
 
 func _ready() -> void:
 	add_child(world)
+	var preset := Settings.preset()
+	get_viewport().scaling_3d_scale = preset.escala_3d
+	get_viewport().msaa_3d = Viewport.MSAA_2X if preset.msaa else Viewport.MSAA_DISABLED
 	var deco_rng := RandomNumberGenerator.new()
 	deco_rng.seed = hash(_beast_def.id)
 	Models.build_arena(world, _beast_def.bioma, deco_rng)
@@ -52,6 +55,9 @@ func _ready() -> void:
 	world.add_child(player)
 	beast.setup(self, _beast_def)
 	world.add_child(beast)
+	if not preset.sombras:
+		player.add_child(Models.blob_shadow(0.7, 0.7))
+		beast.add_child(Models.blob_shadow(_beast_def.visual.largura * 0.75, _beast_def.visual.comprimento * 0.6))
 
 	camera_rig.target = player
 	camera_rig.lock_target = beast
@@ -75,7 +81,21 @@ func _ready() -> void:
 	touch_layer.add_child(touch)
 	touch.set_potions(player.potions)
 
+	_prewarm()
 	banner("Cace: %s" % _beast_def.nome)
+
+
+## Mostra cada efeito uma vez enquanto a tela de carregamento cobre a cena: o celular compila
+## os shaders agora, em vez de travar na primeira vez que o efeito aparece na luta.
+func _prewarm() -> void:
+	var at := player.position + Vector3(0, 1.0, -3.0)
+	fx.burst(at, Color.WHITE, 2, 1.0)
+	fx.text(at, "0")
+	for t in [["setor", 3.0, 90.0], ["investida", 1.5, 0.0], ["circulo", 3.0, 360.0]]:
+		var tg := Models.build_telegraph(t[0], t[1], t[2], 4.0)
+		tg.group.position = Vector3(at.x, 0.08, at.z)
+		world.add_child(tg.group)
+		get_tree().create_timer(0.3).timeout.connect(tg.group.queue_free)
 
 
 func _process(dt: float) -> void:
@@ -241,3 +261,4 @@ func _finish(victory: bool) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	get_viewport().scaling_3d_scale = 1.0

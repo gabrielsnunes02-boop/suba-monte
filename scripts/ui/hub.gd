@@ -289,6 +289,20 @@ func _render_home() -> void:
 		if g.perk != "":
 			load_card[1].add_child(_label("%s: %s" % [GameData.PERKS[g.perk].nome, GameData.PERKS[g.perk].descricao], 16, C_GOLD, true))
 
+	var gfx := HBoxContainer.new()
+	gfx.alignment = BoxContainer.ALIGNMENT_CENTER
+	gfx.add_theme_constant_override("separation", 10)
+	gfx.add_child(_label("Gráficos:", 18, C_MUTED))
+	for q in Settings.NOMES.size():
+		var on := Settings.quality() == q
+		var b := _button(Settings.NOMES[q], func():
+			Settings.set_quality(q)
+			render(), on)
+		b.custom_minimum_size = Vector2(130, 50)
+		gfx.add_child(b)
+	gfx.add_child(_label("Se travar, use Baixo.", 16, C_MUTED))
+	_content.add_child(gfx)
+
 	var foot := HBoxContainer.new()
 	foot.alignment = BoxContainer.ALIGNMENT_CENTER
 	foot.add_child(_label("Progresso salvo neste aparelho.", 16, C_MUTED))

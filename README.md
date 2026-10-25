@@ -9,6 +9,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 | Sistema | O que tem |
 |---|---|
+| Personagem | Caçador **KayKit Knight** (CC0) com esqueleto e animações prontas: parado, corrida, 3 golpes de espada de duas mãos, golpe carregado, esquiva, poção, dano e desmaio |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
 | Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
 | Feras | **Onça-Brasa** (Fogo), **Tatu-Musgo** (Natureza), **Jacaré-Maré** (Água, Tier 2) |
@@ -19,7 +20,13 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Progressão | Rank de caçador (libera feras), bestiário com abates e recorde, progresso salvo no aparelho (offline) |
 | Visual | Ilha flutuante estilizada (toon), céu, neblina, grama animada por shader, árvores, o Monte ao fundo |
 
-Todos os modelos são gerados por código (nenhum asset externo). Trocar por modelos de artista depois é só substituir as funções em `scripts/hunt/models.gd`.
+As feras e o cenário ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
+
+No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de grama, antisserrilhado). Se travar, use Baixo.
+
+## Créditos
+
+- Personagem: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/personagens/kaykit/LICENSE.txt`).
 
 ## Controles
 

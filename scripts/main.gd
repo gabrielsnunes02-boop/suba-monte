@@ -5,6 +5,7 @@ extends Node
 ##   --bot=<fera_id>     inicia a caçada direto e joga sozinho (teste automatizado)
 ##   --seconds=<n>       tempo máximo do bot (padrão 90)
 ##   --shots=<pasta>     salva capturas de tela durante o teste (precisa de renderização)
+##   --quality=<0|1|2>   qualidade gráfica (Baixo, Médio, Alto)
 ##   --hub-shot=<pasta>  salva capturas das telas do acampamento e sai
 
 var profile: Dictionary
@@ -18,6 +19,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	if _args.has("quality"):
+		Settings.set_quality(int(_args.quality))
 	profile = ProfileLogic.load_profile()
 	if _args.has("bot"):
 		_start_bot()
