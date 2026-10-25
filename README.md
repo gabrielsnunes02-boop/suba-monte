@@ -9,7 +9,8 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 | Sistema | O que tem |
 |---|---|
-| Personagem | Caçador **Camponês** (`Male_Peasant`, esqueleto padrão do Unreal) com animações da **Universal Animation Library** da Quaternius: guarda com espada, corrida, golpe, golpe carregado, rolamento, poção, dano e desmaio |
+| Personagem | Caçador modular com esqueleto padrão do Unreal: **Ranger** (capuz, ombreira, botas) ou **Camponês**, escolhidos no acampamento. Animações da **Universal Animation Library** da Quaternius: guarda com espada, corrida, golpe, golpe carregado, rolamento, poção, dano e desmaio |
+| Mundo | Vegetação do **Stylized Nature MegaKit** (Quaternius): árvores, pinheiros, árvores retorcidas e secas, arbustos, flores, samambaias, cogumelos e pedras, diferente em cada ilha e desenhada com MultiMesh (leve no celular) |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
 | Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
 | Feras | **Onça-Brasa** (Fogo), **Tatu-Musgo** (Natureza), **Jacaré-Maré** (Água, Tier 2) |
@@ -22,14 +23,15 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 As animações passam de um esqueleto para outro pelo **redirecionamento humanoide** da Godot: cada modelo tem um `BoneMap` (`*_bonemap.tres`) ligado no seu arquivo `.import`. Qualquer personagem humano novo (Mixamo, Unreal, Rigify) pode usar as mesmas animações criando um `BoneMap` para ele.
 
-As feras e o cenário ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
+As feras e o chão da ilha ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
 
 No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de grama, antisserrilhado). Se travar, use Baixo.
 
 ## Créditos
 
 - Animações do Camponês: [Universal Animation Library](https://quaternius.com), de Quaternius — licença CC0 (`assets/animacoes/quaternius/LICENSE.txt`).
-- Modelo do Camponês (`assets/personagens/peasant/`): enviado pelo autor do projeto; confirme a licença de uso antes de publicar o jogo.
+- Modelos do Ranger e do Camponês (`assets/personagens/humano/`): enviados pelo autor do projeto; confirme a licença de uso antes de publicar o jogo.
+- Vegetação e pedras: [Stylized Nature MegaKit](https://quaternius.com), de Quaternius — licença CC0 (`assets/mundo/natureza/LICENSE.txt`).
 - Espada: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/armas/kaykit/LICENSE.txt`).
 
 ## Controles

@@ -5,6 +5,18 @@ extends RefCounted
 const ARENA_RADIUS := 30.0
 
 static var _grass_shader: Shader
+static var _kit_meshes := {}
+
+const KIT_DIR := "res://assets/mundo/natureza/%s.gltf"
+## Escala de cada peça do kit (as retorcidas e a vegetação rasteira vêm grandes demais).
+const KIT_SCALE := {
+	"TwistedTree_1": 0.5, "TwistedTree_3": 0.5, "DeadTree_1": 0.8, "DeadTree_3": 0.8,
+	"Grass_Common_Short": 0.5, "Grass_Common_Tall": 0.5, "Grass_Wispy_Tall": 0.5,
+	"Flower_3_Group": 0.45, "Flower_4_Group": 0.45, "Clover_1": 0.6, "Rock_Medium_1": 0.7,
+	"Rock_Medium_2": 0.7, "Rock_Medium_3": 0.7,
+}
+const ROCKS := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
+const PEBBLES := ["Pebble_Round_1", "Pebble_Round_2", "Pebble_Round_3", "Pebble_Round_4", "Pebble_Round_5"]
 
 
 static func mat(color: Color, emission := Color.BLACK, energy := 0.0) -> StandardMaterial3D:
@@ -222,10 +234,12 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	var ground_mat := mat(Color(biome.chao))
 	add_mesh(parent, cylinder(ARENA_RADIUS + 4, ARENA_RADIUS - 1, 2.0, 40), ground_mat, Vector3(0, -1.0, 0))
 	add_mesh(parent, cone(ARENA_RADIUS - 1, 26.0, 12), mat(Color("#5a4a3c")), Vector3(0, -15.0, 0), Vector3.ONE, Vector3(PI, 0, 0))
+	# Rochas penduradas embaixo da ilha (o topo fica abaixo do chão).
 	for i in 7:
 		var a := rng.randf() * TAU
-		add_mesh(parent, cone(3.0 + rng.randf() * 3.0, 10.0 + rng.randf() * 8.0, 6), mat(Color("#6b5847")),
-			Vector3(cos(a) * (ARENA_RADIUS - 6), -6.0, sin(a) * (ARENA_RADIUS - 6)), Vector3.ONE, Vector3(PI, 0, 0))
+		var h := 10.0 + rng.randf() * 8.0
+		add_mesh(parent, cone(3.0 + rng.randf() * 3.0, h, 6), mat(Color("#6b5847")),
+			Vector3(cos(a) * (ARENA_RADIUS - 6), -h / 2.0 - 1.0, sin(a) * (ARENA_RADIUS - 6)), Vector3.ONE, Vector3(PI, 0, 0))
 
 	_build_grass(parent, Color(biome.grama), rng)
 
@@ -233,26 +247,7 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	var water := add_mesh(parent, cylinder(6.0, 6.0, 0.05, 32), _water_mat(), Vector3(-17, 0.03, 9))
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-	# Árvores e pedras na borda
-	var trunk := mat(Color("#5b3b22"))
-	var leaf := mat(Color(biome.arvore))
-	var leaf2 := mat(Color(biome.arvore).lightened(0.15))
-	var rock := mat(Color(biome.pedra))
-	for i in 30:
-		var a := rng.randf() * TAU
-		var r := ARENA_RADIUS - 4 + rng.randf() * 6
-		var pos := Vector3(cos(a) * r, 0, sin(a) * r)
-		if rng.randf() < 0.6:
-			var tree := Node3D.new()
-			tree.position = pos
-			var h := 2.5 + rng.randf() * 2.5
-			add_mesh(tree, cylinder(0.22, 0.38, h, 6), trunk, Vector3(0, h / 2, 0), Vector3.ONE, Vector3(0, 0, rng.randf_range(-0.15, 0.15)))
-			add_mesh(tree, sphere(1.6 + rng.randf(), 8, 6), leaf, Vector3(0, h + 0.8, 0), Vector3(1.2, 0.8, 1.2))
-			add_mesh(tree, sphere(1.0 + rng.randf() * 0.6, 8, 6), leaf2, Vector3(0.6, h + 1.5, 0.3), Vector3(1.1, 0.8, 1.1))
-			parent.add_child(tree)
-		else:
-			add_mesh(parent, sphere(0.8 + rng.randf() * 1.4, 6, 4), rock, pos + Vector3(0, 0.2, 0),
-				Vector3(1.0, 0.7, 1.2), Vector3(rng.randf(), rng.randf(), rng.randf()))
+	_place_nature(parent, biome, rng)
 
 	# O Monte ao fundo
 	var mountain := Node3D.new()
@@ -271,6 +266,86 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 		add_mesh(isle, cone(s * 0.8, s * 2.2, 8), mat(Color("#5a4a3c")), Vector3(0, -s * 1.1 - 0.7, 0), Vector3.ONE, Vector3(PI, 0, 0))
 		isle.position = Vector3(cos(a) * d, rng.randf_range(-15.0, 10.0), sin(a) * d)
 		parent.add_child(isle)
+
+
+## Malha de uma peça do kit Stylized Nature (Quaternius, CC0), com a transformação do arquivo aplicada.
+static func kit_mesh(model: String) -> Mesh:
+	if not _kit_meshes.has(model):
+		var scene: Node3D = load(KIT_DIR % model).instantiate()
+		var mi: MeshInstance3D = scene.find_children("*", "MeshInstance3D", true, false)[0]
+		var mesh: Mesh = mi.mesh
+		var t := Transform3D.IDENTITY
+		var p: Node = mi
+		while p != scene:
+			t = (p as Node3D).transform * t
+			p = p.get_parent()
+		if not t.is_equal_approx(Transform3D.IDENTITY):
+			# Aplica a transformação do nó na malha para poder usar MultiMesh direto.
+			var st := SurfaceTool.new()
+			var baked := ArrayMesh.new()
+			for s in mesh.get_surface_count():
+				st.create_from(mesh, s)
+				var arr := st.commit_to_arrays()
+				var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+				for k in verts.size():
+					verts[k] = t * verts[k]
+				arr[Mesh.ARRAY_VERTEX] = verts
+				baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+				baked.surface_set_material(s, mesh.surface_get_material(s))
+			mesh = baked
+		_kit_meshes[model] = mesh
+		scene.free()
+	return _kit_meshes[model]
+
+
+## Espalha várias cópias de cada peça com um MultiMesh por peça (uma chamada de desenho cada).
+static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool) -> void:
+	for model in placements:
+		var xforms: Array = placements[model]
+		if xforms.is_empty():
+			continue
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = kit_mesh(model)
+		mm.instance_count = xforms.size()
+		for k in xforms.size():
+			mm.set_instance_transform(k, xforms[k])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(mmi)
+
+
+static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGenerator) -> void:
+	var preset := Settings.preset()
+	var placements := {}
+	var add := func(model: String, pos: Vector3, scale_mul: float) -> void:
+		var s: float = KIT_SCALE.get(model, 1.0) * scale_mul
+		var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * s)
+		if not placements.has(model):
+			placements[model] = []
+		placements[model].append(Transform3D(basis, pos))
+	var ring := func(r_min: float, r_max: float) -> Vector3:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(r_min, r_max)
+		return Vector3(cos(a) * r, 0, sin(a) * r)
+
+	# Árvores na borda da ilha (o centro fica livre para a luta).
+	var trees: Array = biome.arvores
+	for i in int(preset.arvores):
+		add.call(trees[i % trees.size()], ring.call(ARENA_RADIUS - 3.0, ARENA_RADIUS + 2.0), rng.randf_range(0.8, 1.25))
+	# Pedras médias, arbustos e plantas num anel intermediário.
+	for i in 8:
+		add.call(ROCKS[i % ROCKS.size()], ring.call(17.0, ARENA_RADIUS), rng.randf_range(0.6, 1.2))
+	var plants: Array = biome.plantas
+	var details := int(preset.detalhes)
+	for i in details:
+		add.call(plants[i % plants.size()], ring.call(12.0, ARENA_RADIUS + 1.0), rng.randf_range(0.7, 1.3))
+	# Pedrinhas e tufos baixos por toda a arena (pequenos, não atrapalham a luta).
+	for i in details / 2:
+		add.call(PEBBLES[i % PEBBLES.size()], ring.call(3.0, ARENA_RADIUS), rng.randf_range(0.8, 2.0))
+		add.call("Grass_Common_Short", ring.call(6.0, ARENA_RADIUS), rng.randf_range(0.6, 1.1))
+	_scatter(parent, placements, preset.sombras)
 
 
 static func _water_mat() -> StandardMaterial3D:

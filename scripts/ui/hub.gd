@@ -303,6 +303,18 @@ func _render_home() -> void:
 	gfx.add_child(_label("Se travar, use Baixo.", 16, C_MUTED))
 	_content.add_child(gfx)
 
+	var look := HBoxContainer.new()
+	look.alignment = BoxContainer.ALIGNMENT_CENTER
+	look.add_theme_constant_override("separation", 10)
+	look.add_child(_label("Visual:", 18, C_MUTED))
+	for id in Settings.VISUAIS:
+		var b := _button(Settings.VISUAIS[id], func():
+			Settings.set_outfit(id)
+			render(), Settings.outfit() == id)
+		b.custom_minimum_size = Vector2(150, 50)
+		look.add_child(b)
+	_content.add_child(look)
+
 	var foot := HBoxContainer.new()
 	foot.alignment = BoxContainer.ALIGNMENT_CENTER
 	foot.add_child(_label("Progresso salvo neste aparelho.", 16, C_MUTED))

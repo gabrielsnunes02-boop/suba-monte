@@ -57,7 +57,7 @@ func setup(h: Hunt) -> void:
 	var blade_color := Color("#c9d1dc") if h.weapon.elemento == "neutro" else GameData.element_color(h.weapon.elemento)
 	_model = HunterModel.new()
 	add_child(_model)
-	_model.setup(blade_color)
+	_model.setup(Settings.outfit(), blade_color)
 
 
 func has_perk(p: String) -> bool:

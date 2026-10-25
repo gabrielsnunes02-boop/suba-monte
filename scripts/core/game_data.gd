@@ -102,7 +102,9 @@ const BEASTS := [
 		"moedas": [180, 260], "xp": 80,
 		"visual": {"cor_corpo": "#d9712c", "cor_detalhe": "#3a1d10", "cor_olhos": "#ffe066", "comprimento": 3.6,
 			"altura": 1.5, "largura": 1.4, "pernas": 1.3, "cauda_segmentos": 5, "espinhos": "chamas"},
-		"bioma": {"chao": "#a8843c", "grama": "#b39a45", "ceu_topo": "#5f8fd0", "ceu_horizonte": "#f4c48a", "arvore": "#9a7b2a", "pedra": "#8b6a4f"},
+		"bioma": {"chao": "#a8843c", "grama": "#b39a45", "ceu_topo": "#5f8fd0", "ceu_horizonte": "#f4c48a", "arvore": "#9a7b2a", "pedra": "#8b6a4f",
+			"arvores": ["DeadTree_1", "DeadTree_3", "TwistedTree_1", "CommonTree_5"],
+			"plantas": ["Bush_Common", "Grass_Wispy_Tall", "Plant_7_Big", "Grass_Common_Tall"]},
 	},
 	{
 		"id": "tatu_musgo", "nome": "Tatu-Musgo", "apelido": "O Muro Vivo", "tier": 1, "rank_minimo": 1,
@@ -127,7 +129,9 @@ const BEASTS := [
 		"moedas": [200, 280], "xp": 90,
 		"visual": {"cor_corpo": "#6f8f3a", "cor_detalhe": "#3d4a22", "cor_olhos": "#c8ff6a", "comprimento": 3.4,
 			"altura": 1.8, "largura": 2.0, "pernas": 0.9, "cauda_segmentos": 4, "espinhos": "placas"},
-		"bioma": {"chao": "#4f8a3a", "grama": "#5fa845", "ceu_topo": "#4f86c6", "ceu_horizonte": "#bfe3ef", "arvore": "#2f7a3a", "pedra": "#7c8a7a"},
+		"bioma": {"chao": "#4f8a3a", "grama": "#5fa845", "ceu_topo": "#4f86c6", "ceu_horizonte": "#bfe3ef", "arvore": "#2f7a3a", "pedra": "#7c8a7a",
+			"arvores": ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "Pine_1", "Pine_3"],
+			"plantas": ["Bush_Common_Flowers", "Fern_1", "Flower_3_Group", "Flower_4_Group", "Mushroom_Common", "Clover_1"]},
 	},
 	{
 		"id": "jacare_mare", "nome": "Jacaré-Maré", "apelido": "O Senhor da Correnteza", "tier": 2, "rank_minimo": 3,
@@ -152,7 +156,9 @@ const BEASTS := [
 		"moedas": [380, 500], "xp": 160,
 		"visual": {"cor_corpo": "#2f7f8f", "cor_detalhe": "#163f4a", "cor_olhos": "#9ff3ff", "comprimento": 5.2,
 			"altura": 1.1, "largura": 1.6, "pernas": 0.7, "cauda_segmentos": 7, "espinhos": "cristas"},
-		"bioma": {"chao": "#3f7a5e", "grama": "#4f9a6e", "ceu_topo": "#3d6f93", "ceu_horizonte": "#a9d2dc", "arvore": "#2c6650", "pedra": "#56706e"},
+		"bioma": {"chao": "#3f7a5e", "grama": "#4f9a6e", "ceu_topo": "#3d6f93", "ceu_horizonte": "#a9d2dc", "arvore": "#2c6650", "pedra": "#56706e",
+			"arvores": ["TwistedTree_3", "DeadTree_1", "Pine_5", "CommonTree_3", "Pine_2"],
+			"plantas": ["Fern_1", "Plant_1_Big", "Grass_Common_Tall", "Mushroom_Common", "Bush_Common"]},
 	},
 ]
 

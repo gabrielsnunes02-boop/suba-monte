@@ -1,12 +1,19 @@
 class_name HunterModel
 extends Node3D
-## Visual do caçador: modelo Male_Peasant (esqueleto padrão do Unreal) animado com a
-## Universal Animation Library da Quaternius (CC0). As animações passam de um esqueleto
+## Visual do caçador: personagem modular (esqueleto padrão do Unreal) animado com a
+## Universal Animation Library da Quaternius (CC0). Cada visual é um conjunto de peças
+## (cabeça, tronco, braços…) que compartilham o mesmo esqueleto. As animações passam de um esqueleto
 ## para o outro pelo perfil humanoide da Godot (BoneMap nos arquivos .import).
 ## O jogador pede papéis ("idle", "light1"…), traduzidos aqui para clipes, com a velocidade
 ## ajustada para caber no tempo do golpe.
 
-const PEASANT := preload("res://assets/personagens/peasant/Male_Peasant.gltf")
+const PARTS_DIR := "res://assets/personagens/humano/%s.gltf"
+## Visual → peças. A primeira peça fornece o esqueleto; as outras são encaixadas nele.
+const OUTFITS := {
+	"ranger": ["Male_Ranger_Body", "Male_Ranger_Arms", "Male_Ranger_Legs", "Male_Ranger_Feet_Boots",
+		"Male_Ranger_Head_Hood", "Male_Ranger_Acc_Pauldron"],
+	"campones": ["Male_Peasant"],
+}
 const SWORD := preload("res://assets/armas/kaykit/sword_2handed.gltf")
 const UAL := preload("res://assets/animacoes/quaternius/UAL_Standard.glb")
 
@@ -45,16 +52,19 @@ static func library() -> AnimationLibrary:
 	return _library
 
 
-func setup(blade_color: Color) -> void:
-	var peasant := PEASANT.instantiate()
-	peasant.scale = Vector3.ONE * SCALE
-	add_child(peasant)
+func setup(outfit: String, blade_color: Color) -> void:
+	var parts: Array = OUTFITS.get(outfit, OUTFITS.ranger)
+	var body: Node3D = load(PARTS_DIR % parts[0]).instantiate()
+	body.scale = Vector3.ONE * SCALE
+	add_child(body)
 	anim = AnimationPlayer.new()
-	peasant.add_child(anim)
+	body.add_child(anim)
 	anim.root_node = NodePath("..")
 	anim.add_animation_library("", library())
 
-	var skeleton: Skeleton3D = peasant.find_child("GeneralSkeleton", true, false)
+	var skeleton: Skeleton3D = body.find_child("GeneralSkeleton", true, false)
+	for i in range(1, parts.size()):
+		_attach_part(PARTS_DIR % parts[i], skeleton)
 	var hand := BoneAttachment3D.new()
 	skeleton.add_child(hand)
 	hand.bone_name = "RightHand"
@@ -130,6 +140,17 @@ func resume_from(role: String, fraction: float, fit: float) -> void:
 	anim.play(clip, 0.05)
 	anim.seek(length_of(clip) * fraction, true)
 	anim.speed_scale = length_of(clip) * (1.0 - fraction) / fit
+
+
+## Move as malhas de uma peça para o esqueleto principal (os ossos têm os mesmos nomes).
+static func _attach_part(path: String, skeleton: Skeleton3D) -> void:
+	var part: Node = load(path).instantiate()
+	for mi in part.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		m.get_parent().remove_child(m)
+		skeleton.add_child(m)
+		m.skeleton = NodePath("..")
+	part.free()
 
 
 static func _material_copy(mi: MeshInstance3D) -> StandardMaterial3D:

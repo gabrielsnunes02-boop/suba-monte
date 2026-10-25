@@ -42,7 +42,7 @@ func text(pos: Vector3, value: String, color := Color.WHITE, size := 64) -> void
 	var l := Label3D.new()
 	l.text = value
 	l.modulate = color
-	l.outline_modulate = Color(0, 0, 0, 0.9)
+	l.outline_modulate = Color(0, 0, 0, 0.9 * color.a)
 	l.outline_size = 14
 	l.font_size = size
 	l.pixel_size = 0.006
