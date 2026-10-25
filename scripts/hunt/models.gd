@@ -35,6 +35,42 @@ static func mat(color: Color, emission := Color.BLACK, energy := 0.0) -> Standar
 	return m
 
 
+static var _simplified := {}
+
+
+## Versão barata de um material: sem mapas de relevo, rugosidade e oclusão, e com luz por
+## vértice quando a qualidade pede. Materiais iguais viram a mesma cópia.
+static func simplified(src: Material) -> Material:
+	var preset := Settings.preset()
+	if not preset.simples or not (src is StandardMaterial3D):
+		return src
+	var key := src.get_instance_id()
+	if not _simplified.has(key):
+		var d: StandardMaterial3D = src.duplicate()
+		d.normal_enabled = false
+		d.roughness_texture = null
+		d.metallic_texture = null
+		d.ao_enabled = false
+		d.rim_enabled = false
+		if preset.vertice and d.shading_mode == BaseMaterial3D.SHADING_MODE_PER_PIXEL:
+			d.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
+		_simplified[key] = d
+	return _simplified[key]
+
+
+## Aplica `simplified` em todas as malhas de um nó (respeitando materiais já sobrescritos).
+static func simplify_tree(node: Node) -> void:
+	if not Settings.preset().simples:
+		return
+	for mi in node.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.material_override:
+			m.material_override = simplified(m.material_override)
+			continue
+		for s in m.get_surface_override_material_count():
+			m.set_surface_override_material(s, simplified(m.get_active_material(s)))
+
+
 static func unshaded(color: Color) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -293,6 +329,9 @@ static func kit_mesh(model: String) -> Mesh:
 				baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 				baked.surface_set_material(s, mesh.surface_get_material(s))
 			mesh = baked
+		if Settings.preset().simples and mesh is ArrayMesh:
+			for s in mesh.get_surface_count():
+				(mesh as ArrayMesh).surface_set_material(s, simplified(mesh.surface_get_material(s)))
 		_kit_meshes[model] = mesh
 		scene.free()
 	return _kit_meshes[model]

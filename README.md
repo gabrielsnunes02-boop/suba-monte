@@ -25,7 +25,7 @@ As animações passam de um esqueleto para outro pelo **redirecionamento humanoi
 
 As feras e o chão da ilha ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
 
-No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de grama, antisserrilhado). Se travar, use Baixo.
+No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de vegetação, antisserrilhado, materiais simples e luz por vértice no Baixo). Em GPUs de entrada (PowerVR GE, Mali-G52, Adreno 50x…) o jogo já começa em Baixo, e durante a caçada a **resolução 3D se ajusta sozinha** quando o FPS cai (o canto da tela mostra FPS e a resolução atual).
 
 ## Créditos
 

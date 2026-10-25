@@ -65,6 +65,7 @@ func setup(outfit: String, blade_color: Color) -> void:
 	var skeleton: Skeleton3D = body.find_child("GeneralSkeleton", true, false)
 	for i in range(1, parts.size()):
 		_attach_part(PARTS_DIR % parts[i], skeleton)
+	Models.simplify_tree(body)
 	var hand := BoneAttachment3D.new()
 	skeleton.add_child(hand)
 	hand.bone_name = "RightHand"

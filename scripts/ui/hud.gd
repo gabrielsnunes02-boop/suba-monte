@@ -16,6 +16,7 @@ var fury_label: Label
 var action_label: Label
 var timer_label: Label
 var fps_label: Label
+var render_scale := 1.0
 var info_label: Label
 var banner_label: Label
 var part_labels := {}
@@ -210,7 +211,7 @@ func refresh(dt: float, player: HunterPlayer, beast: Beast, faints: int, elapsed
 	var s := int(elapsed)
 	timer_label.text = "%d:%02d" % [s / 60, s % 60]
 	if Engine.get_process_frames() % 30 == 0:
-		fps_label.text = "%d fps" % Engine.get_frames_per_second()
+		fps_label.text = "%d fps · %d%%" % [Engine.get_frames_per_second(), roundi(render_scale * 100.0)]
 	faints_label.text = "Desmaios %d/%d" % [faints, GameData.PLAYER.desmaios_maximos]
 	for id in part_labels:
 		var st: Dictionary = beast.parts[id]

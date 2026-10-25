@@ -5,12 +5,20 @@ extends RefCounted
 const PATH := "user://config.cfg"
 const NOMES := ["Baixo", "Médio", "Alto"]
 
-## Por nível: resolução 3D, sombras em tempo real, grama, MSAA, árvores e plantas do kit.
+## Por nível: resolução 3D, sombras em tempo real, grama, MSAA, árvores e plantas do kit,
+## materiais simples (sem mapas de relevo/rugosidade) e luz por vértice (bem mais barata).
 const PRESETS := [
-	{"escala_3d": 0.6, "sombras": false, "grama": 1200, "msaa": false, "arvores": 14, "detalhes": 70},
-	{"escala_3d": 0.8, "sombras": false, "grama": 2200, "msaa": false, "arvores": 22, "detalhes": 140},
-	{"escala_3d": 1.0, "sombras": true, "grama": 3200, "msaa": true, "arvores": 30, "detalhes": 240},
+	{"escala_3d": 0.55, "sombras": false, "grama": 500, "msaa": false, "arvores": 10, "detalhes": 36,
+		"simples": true, "vertice": true},
+	{"escala_3d": 0.75, "sombras": false, "grama": 1400, "msaa": false, "arvores": 16, "detalhes": 90,
+		"simples": true, "vertice": false},
+	{"escala_3d": 1.0, "sombras": true, "grama": 3200, "msaa": true, "arvores": 30, "detalhes": 240,
+		"simples": false, "vertice": false},
 ]
+## GPUs de entrada: o jogo já começa em Baixo nelas.
+const GPUS_FRACAS := ["PowerVR Rogue GE", "PowerVR Rogue GX", "PowerVR Rogue G6", "Mali-4", "Mali-T",
+	"Mali-G31", "Mali-G51", "Mali-G52", "Mali-G57", "Adreno (TM) 3", "Adreno (TM) 4", "Adreno (TM) 50",
+	"Adreno (TM) 51", "Adreno (TM) 52", "Adreno (TM) 60"]
 
 static var _cache := -1
 
@@ -18,9 +26,9 @@ static var _cache := -1
 static func quality() -> int:
 	if _cache < 0:
 		var cfg := ConfigFile.new()
-		_cache = 1
-		if cfg.load(PATH) == OK:
-			_cache = clampi(int(cfg.get_value("graficos", "qualidade", 1)), 0, PRESETS.size() - 1)
+		_cache = 0 if is_weak_gpu() else 1
+		if cfg.load(PATH) == OK and cfg.has_section_key("graficos", "qualidade"):
+			_cache = clampi(int(cfg.get_value("graficos", "qualidade", _cache)), 0, PRESETS.size() - 1)
 	return _cache
 
 
@@ -30,6 +38,14 @@ static func set_quality(q: int) -> void:
 	cfg.load(PATH)
 	cfg.set_value("graficos", "qualidade", _cache)
 	cfg.save(PATH)
+
+
+static func is_weak_gpu() -> bool:
+	var gpu := RenderingServer.get_video_adapter_name()
+	for g in GPUS_FRACAS:
+		if gpu.contains(g):
+			return true
+	return false
 
 
 static func preset() -> Dictionary:

@@ -28,6 +28,10 @@ var _ended := false
 var _hitstop_until := 0
 var _slow_until := 0
 var _slow_scale := 1.0
+## Resolução dinâmica: baixa a escala 3D se o FPS cair, e devolve aos poucos se sobrar.
+var _render_scale := 1.0
+var _next_fps_check := 0
+const MIN_RENDER_SCALE := 0.45
 
 
 func setup(profile: Dictionary, fera_id: String) -> void:
@@ -42,11 +46,13 @@ func setup(profile: Dictionary, fera_id: String) -> void:
 func _ready() -> void:
 	add_child(world)
 	var preset := Settings.preset()
-	get_viewport().scaling_3d_scale = preset.escala_3d
+	_render_scale = preset.escala_3d
+	get_viewport().scaling_3d_scale = _render_scale
 	get_viewport().msaa_3d = Viewport.MSAA_2X if preset.msaa else Viewport.MSAA_DISABLED
 	var deco_rng := RandomNumberGenerator.new()
 	deco_rng.seed = hash(_beast_def.id)
 	Models.build_arena(world, _beast_def.bioma, deco_rng)
+	Models.simplify_tree(world)
 	_spawn_nodes()
 	world.add_child(fx)
 
@@ -66,6 +72,7 @@ func _ready() -> void:
 	camera_rig.snap_behind()
 
 	hud.build(_beast_def, weapon, weapon_level)
+	hud.render_scale = _render_scale
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	hud.pause_requested.connect(func(): _set_paused(true))
 	hud.resume_requested.connect(func(): _set_paused(false))
@@ -102,6 +109,7 @@ func _process(dt: float) -> void:
 	_update_time_scale()
 	if _ended:
 		return
+	_adapt_resolution()
 	_elapsed += dt
 	if Input.is_action_just_pressed("lock_on"):
 		camera_rig.locked = not camera_rig.locked
@@ -135,6 +143,23 @@ func hitstop(seconds: float) -> void:
 func slowmo(seconds: float, scale_f: float) -> void:
 	_slow_until = Time.get_ticks_msec() + int(seconds * 1000.0)
 	_slow_scale = scale_f
+
+
+func _adapt_resolution() -> void:
+	var now := Time.get_ticks_msec()
+	if now < _next_fps_check:
+		return
+	_next_fps_check = now + 2000
+	var fps := Engine.get_frames_per_second()
+	var target: float = Settings.preset().escala_3d
+	if fps < 27 and _render_scale > MIN_RENDER_SCALE:
+		_render_scale = maxf(MIN_RENDER_SCALE, _render_scale - 0.1)
+	elif fps > 50 and _render_scale < target:
+		_render_scale = minf(target, _render_scale + 0.05)
+	else:
+		return
+	get_viewport().scaling_3d_scale = _render_scale
+	hud.render_scale = _render_scale
 
 
 func _update_time_scale() -> void:
