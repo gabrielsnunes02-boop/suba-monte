@@ -47,6 +47,7 @@ func _ready() -> void:
 	add_child(world)
 	var preset := Settings.preset()
 	_render_scale = preset.escala_3d
+	Engine.max_fps = preset.fps
 	get_viewport().scaling_3d_scale = _render_scale
 	get_viewport().msaa_3d = Viewport.MSAA_2X if preset.msaa else Viewport.MSAA_DISABLED
 	var deco_rng := RandomNumberGenerator.new()
@@ -151,10 +152,14 @@ func _adapt_resolution() -> void:
 		return
 	_next_fps_check = now + 2000
 	var fps := Engine.get_frames_per_second()
-	var target: float = Settings.preset().escala_3d
-	if fps < 27 and _render_scale > MIN_RENDER_SCALE:
+	var preset := Settings.preset()
+	var target: float = preset.escala_3d
+	# Com limite de 30 FPS, só dá para saber que sobra folga quando ele fica cravado no limite.
+	var low: int = 26 if preset.fps > 0 else 27
+	var high: int = preset.fps - 1 if preset.fps > 0 else 50
+	if fps < low and _render_scale > MIN_RENDER_SCALE:
 		_render_scale = maxf(MIN_RENDER_SCALE, _render_scale - 0.1)
-	elif fps > 50 and _render_scale < target:
+	elif fps >= high and _render_scale < target:
 		_render_scale = minf(target, _render_scale + 0.05)
 	else:
 		return
@@ -286,4 +291,5 @@ func _finish(victory: bool) -> void:
 
 func _exit_tree() -> void:
 	Engine.time_scale = 1.0
+	Engine.max_fps = 0
 	get_viewport().scaling_3d_scale = 1.0

@@ -19,13 +19,13 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Coleta e forja | Minério e fibra na ilha; fabricação garantida; upgrade +0 a +10 (material raro a partir do +5) |
 | Builds | Perks: Quebra-Ossos, Caçador Paciente, Esquiva Afiada, Último Fôlego, Pele Grossa, Fôlego Longo |
 | Progressão | Rank de caçador (libera feras), bestiário com abates e recorde, progresso salvo no aparelho (offline) |
-| Visual | Ilha flutuante estilizada (toon), céu, neblina, grama animada por shader, árvores, o Monte ao fundo |
+| Visual | Vale fechado por paredões de rocha, no estilo dos jogos de PSP: texturas pintadas de grama, terra e rocha, trilha de terra, sombras das árvores e luz "assadas" no terreno (sem custo por quadro), neblina colorida por região e raios de sol |
 
 As animações passam de um esqueleto para outro pelo **redirecionamento humanoide** da Godot: cada modelo tem um `BoneMap` (`*_bonemap.tres`) ligado no seu arquivo `.import`. Qualquer personagem humano novo (Mixamo, Unreal, Rigify) pode usar as mesmas animações criando um `BoneMap` para ele.
 
-As feras e o chão da ilha ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
+As feras ainda são geradas por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`. As texturas do terreno (`assets/mundo/terreno/`) são geradas por `tools/gerar_texturas.py` e podem ser trocadas por texturas pintadas à mão com o mesmo nome (o canal alfa de `grama.png` e `terra.png` é a "altura" usada na borda entre as duas).
 
-No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de vegetação, antisserrilhado, materiais simples e luz por vértice no Baixo). Em GPUs de entrada (PowerVR GE, Mali-G52, Adreno 50x…) o jogo já começa em Baixo, e durante a caçada a **resolução 3D se ajusta sozinha** quando o FPS cai (o canto da tela mostra FPS e a resolução atual).
+No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de vegetação, antisserrilhado, materiais simples e luz por vértice no Baixo, limite de 30 FPS no Baixo e no Médio). Em GPUs de entrada (PowerVR GE, Mali-G52, Adreno 50x…) o jogo já começa em Baixo, e durante a caçada a **resolução 3D se ajusta sozinha** quando o FPS cai (o canto da tela mostra FPS e a resolução atual).
 
 ## Créditos
 
@@ -89,12 +89,14 @@ scripts/
     beast.gd               IA da fera (perseguir, avisar, atacar, fúria, atordoar, partes)
     camera_rig.gd          câmera em terceira pessoa com trava de mira
     models.gd              modelos procedurais, cenário, grama, avisos no chão
+    terrain.gd             vale com terreno pintado, paredões, luz assada e raios de sol
     fx.gd                  partículas e números de dano
   ui/
     hub.gd                 acampamento (caçar, forja, equipamento, inventário, resultado)
     hud.gd                 HUD da caçada e pausa
     touch_controls.gd      joystick, câmera e botões com multitoque
 tests/run_tests.gd       testes das regras
+tools/gerar_texturas.py  gera as texturas pintadas do terreno
 prototipo-web/           primeiro protótipo (TypeScript + Three.js), mantido como referência
 ```
 

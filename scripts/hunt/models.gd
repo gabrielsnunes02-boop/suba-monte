@@ -234,9 +234,10 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	var e := Environment.new()
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_top_color = Color(biome.ceu_topo)
-	sky_mat.sky_horizon_color = Color(biome.ceu_horizonte)
-	sky_mat.ground_horizon_color = Color(biome.ceu_horizonte)
-	sky_mat.ground_bottom_color = Color(biome.ceu_topo).darkened(0.3)
+	sky_mat.sky_horizon_color = Color(biome.neblina)
+	sky_mat.ground_horizon_color = Color(biome.neblina)
+	sky_mat.ground_bottom_color = Color(biome.neblina).darkened(0.2)
+	sky_mat.sky_curve = 0.25
 	sky_mat.sun_angle_max = 30.0
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -244,64 +245,39 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	e.sky = sky
 	# Ambiente por cor fixa: no renderizador Compatibility a luz vinda do céu ignora a intensidade.
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(biome.ceu_horizonte)
-	e.ambient_light_energy = 0.2
+	e.ambient_light_color = Color(biome.neblina)
+	e.ambient_light_energy = 0.5
 	e.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
 	# Linear: no renderizador Compatibility o Filmic clareia a cena em vez de comprimir.
 	e.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	# Neblina densa e colorida, como nos jogos de PSP: dá profundidade e esconde o fundo.
 	e.fog_enabled = true
-	e.fog_light_color = Color(biome.ceu_horizonte)
-	e.fog_density = 0.004
-	e.fog_sky_affect = 0.3
+	e.fog_light_color = Color(biome.neblina)
+	e.fog_density = 0.009
+	e.fog_sky_affect = 0.85
 	# Glow desligado: caro em celulares e estoura a imagem no renderizador Compatibility.
 	e.glow_enabled = false
 	env.environment = e
 	parent.add_child(env)
 
 	var sun := DirectionalLight3D.new()
-	sun.light_color = Color("#fff1d6")
-	sun.light_energy = 0.75
+	sun.light_color = Color(biome.luz)
+	sun.light_energy = 0.8
 	sun.shadow_enabled = Settings.preset().sombras
 	sun.directional_shadow_max_distance = 60.0
-	sun.rotation = Vector3(deg_to_rad(-50), deg_to_rad(35), 0)
+	sun.basis = Basis.looking_at(-Terrain.SUN_DIR)
 	parent.add_child(sun)
 
-	# Ilha flutuante
-	var ground_mat := mat(Color(biome.chao))
-	add_mesh(parent, cylinder(ARENA_RADIUS + 4, ARENA_RADIUS - 1, 2.0, 40), ground_mat, Vector3(0, -1.0, 0))
-	add_mesh(parent, cone(ARENA_RADIUS - 1, 26.0, 12), mat(Color("#5a4a3c")), Vector3(0, -15.0, 0), Vector3.ONE, Vector3(PI, 0, 0))
-	# Rochas penduradas embaixo da ilha (o topo fica abaixo do chão).
-	for i in 7:
-		var a := rng.randf() * TAU
-		var h := 10.0 + rng.randf() * 8.0
-		add_mesh(parent, cone(3.0 + rng.randf() * 3.0, h, 6), mat(Color("#6b5847")),
-			Vector3(cos(a) * (ARENA_RADIUS - 6), -h / 2.0 - 1.0, sin(a) * (ARENA_RADIUS - 6)), Vector3.ONE, Vector3(PI, 0, 0))
-
+	# Vale fechado por paredões, com terreno pintado (ver Terrain).
+	var noise := Terrain.make_noise(rng.randi())
+	var lake := Vector3(-17, 9, 6)
+	var trees := _place_nature(parent, biome, rng, noise, lake)
+	Terrain.build(parent, biome, noise, trees, lake, rng)
 	_build_grass(parent, Color(biome.grama), rng)
 
 	# Lago decorativo (fora da área central)
-	var water := add_mesh(parent, cylinder(6.0, 6.0, 0.05, 32), _water_mat(), Vector3(-17, 0.03, 9))
+	var water := add_mesh(parent, cylinder(lake.z, lake.z, 0.05, 32), _water_mat(), Vector3(lake.x, 0.03, lake.y))
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-
-	_place_nature(parent, biome, rng)
-
-	# O Monte ao fundo
-	var mountain := Node3D.new()
-	add_mesh(mountain, cone(40.0, 75.0, 9), mat(Color("#7d7f95")), Vector3(0, 12, 0))
-	add_mesh(mountain, cone(13.0, 25.0, 9), mat(Color("#f4f6ff")), Vector3(0, 37.5, 0))
-	mountain.position = Vector3(-25, -25, -110)
-	parent.add_child(mountain)
-
-	# Ilhas distantes
-	for i in 6:
-		var a := rng.randf() * TAU
-		var d := 70.0 + rng.randf() * 40.0
-		var isle := Node3D.new()
-		var s := 4.0 + rng.randf() * 6.0
-		add_mesh(isle, cylinder(s, s * 0.8, 1.5, 10), mat(Color(biome.grama).darkened(0.1)), Vector3.ZERO)
-		add_mesh(isle, cone(s * 0.8, s * 2.2, 8), mat(Color("#5a4a3c")), Vector3(0, -s * 1.1 - 0.7, 0), Vector3.ONE, Vector3(PI, 0, 0))
-		isle.position = Vector3(cos(a) * d, rng.randf_range(-15.0, 10.0), sin(a) * d)
-		parent.add_child(isle)
 
 
 ## Malha de uma peça do kit Stylized Nature (Quaternius, CC0), com a transformação do arquivo aplicada.
@@ -355,41 +331,53 @@ static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool) -> v
 		parent.add_child(mmi)
 
 
-static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGenerator) -> void:
+## Espalha a vegetação do kit e devolve (x, raio da copa, z) de cada árvore.
+static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGenerator,
+		noise: FastNoiseLite, lake: Vector3) -> Array:
 	var preset := Settings.preset()
 	var placements := {}
+	var trees := []
 	var add := func(model: String, pos: Vector3, scale_mul: float) -> void:
 		var s: float = KIT_SCALE.get(model, 1.0) * scale_mul
 		var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * s)
+		pos.y = Terrain.height(noise, pos.x, pos.z) - 0.05
 		if not placements.has(model):
 			placements[model] = []
 		placements[model].append(Transform3D(basis, pos))
 	var ring := func(r_min: float, r_max: float) -> Vector3:
-		var a := rng.randf() * TAU
-		var r := rng.randf_range(r_min, r_max)
-		return Vector3(cos(a) * r, 0, sin(a) * r)
+		for attempt in 6:
+			var a := rng.randf() * TAU
+			var r := rng.randf_range(r_min, r_max)
+			var p := Vector3(cos(a) * r, 0, sin(a) * r)
+			if Vector2(p.x - lake.x, p.z - lake.y).length() > lake.z + 0.8:
+				return p
+		return Vector3(0, 0, -r_max)
 
-	# Árvores na borda da ilha (o centro fica livre para a luta).
-	var trees: Array = biome.arvores
+	# Árvores grandes na borda e na encosta até os paredões (o centro fica livre para a luta).
+	var tree_models: Array = biome.arvores
 	for i in int(preset.arvores):
-		add.call(trees[i % trees.size()], ring.call(ARENA_RADIUS - 3.0, ARENA_RADIUS + 2.0), rng.randf_range(0.8, 1.25))
+		var p: Vector3 = ring.call(ARENA_RADIUS - 3.0, Terrain.CLIFF_RADIUS - 3.0)
+		var s := rng.randf_range(1.1, 1.7)
+		add.call(tree_models[i % tree_models.size()], p, s)
+		trees.append(Vector3(p.x, 2.5 * s, p.z))
 	# Pedras médias, arbustos e plantas num anel intermediário.
 	for i in 8:
-		add.call(ROCKS[i % ROCKS.size()], ring.call(17.0, ARENA_RADIUS), rng.randf_range(0.6, 1.2))
+		add.call(ROCKS[i % ROCKS.size()], ring.call(17.0, ARENA_RADIUS + 6.0), rng.randf_range(0.7, 1.5))
 	var plants: Array = biome.plantas
 	var details := int(preset.detalhes)
 	for i in details:
-		add.call(plants[i % plants.size()], ring.call(12.0, ARENA_RADIUS + 1.0), rng.randf_range(0.7, 1.3))
+		add.call(plants[i % plants.size()], ring.call(12.0, ARENA_RADIUS + 6.0), rng.randf_range(0.7, 1.3))
 	# Pedrinhas e tufos baixos por toda a arena (pequenos, não atrapalham a luta).
 	for i in details / 2:
 		add.call(PEBBLES[i % PEBBLES.size()], ring.call(3.0, ARENA_RADIUS), rng.randf_range(0.8, 2.0))
 		add.call("Grass_Common_Short", ring.call(6.0, ARENA_RADIUS), rng.randf_range(0.6, 1.1))
 	_scatter(parent, placements, preset.sombras)
+	return trees
 
 
 static func _water_mat() -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.albedo_color = Color(0.25, 0.6, 0.85, 0.75)
+	m.albedo_color = Color(0.32, 0.5, 0.42, 0.78)
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.roughness = 0.1
 	m.metallic_specular = 0.8
