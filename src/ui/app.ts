@@ -90,9 +90,14 @@ export class App {
           this.toast(`Equipado: ${GEAR[id].nome}`);
           break;
         case "reset":
-          if (confirm("Apagar todo o progresso deste aparelho?")) {
+          // Confirmação em dois toques (confirm() não funciona em todo navegador embutido).
+          if (t.dataset.armed) {
             this.profile = resetProfile();
             this.go("home");
+            this.toast("Progresso apagado");
+          } else {
+            t.dataset.armed = "1";
+            t.textContent = "Toque de novo para apagar tudo";
           }
           break;
       }
