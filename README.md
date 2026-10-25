@@ -47,7 +47,7 @@ Todos os modelos são gerados por código (nenhum asset externo). Trocar por mod
 3. **Projeto → Exportar** → o preset **Android** já vem configurado (`export_presets.cfg`, só ARM64, sem Gradle) → **Exportar projeto** para gerar o `.apk`, ou use o botão
    **Implantação com um clique** (ícone do Android no canto superior direito) com o celular ligado no USB em modo desenvolvedor.
 
-O projeto usa o renderizador **Mobile** (Vulkan), em paisagem, com compressão de texturas ETC2/ASTC já ligada.
+O projeto usa o renderizador **Compatibility** (OpenGL ES 3), que roda na maior variedade de celulares, em paisagem, com compressão de texturas ETC2/ASTC já ligada. O APK inclui ARM 32 e 64 bits. Na pausa aparecem o renderizador, a GPU e o FPS do aparelho.
 
 ## Testes
 
@@ -62,7 +62,7 @@ godot --headless --path . -- --bot=onca_brasa --seconds=90
 ## Estrutura
 
 ```
-project.godot            configuração (renderizador Mobile, paisagem, toque)
+project.godot            configuração (renderizador Compatibility, paisagem, toque)
 scenes/main.tscn         cena inicial
 scripts/
   main.gd                entrada: controles, acampamento ↔ caçada, modo bot de teste

@@ -15,6 +15,8 @@ var faints_label: Label
 var fury_label: Label
 var action_label: Label
 var timer_label: Label
+var fps_label: Label
+var info_label: Label
 var banner_label: Label
 var part_labels := {}
 var pause_panel: Control
@@ -120,8 +122,12 @@ func build(beast_def: Dictionary, weapon: Dictionary, weapon_level: int) -> void
 	tbox.position = Vector2(-190, 16)
 	tbox.add_theme_constant_override("separation", 12)
 	root.add_child(tbox)
+	var tcol := VBoxContainer.new()
 	timer_label = label("0:00", 24)
-	tbox.add_child(timer_label)
+	tcol.add_child(timer_label)
+	fps_label = label("", 14, Color(1, 1, 1, 0.7))
+	tcol.add_child(fps_label)
+	tbox.add_child(tcol)
 	var pause_btn := Button.new()
 	pause_btn.text = "II"
 	pause_btn.custom_minimum_size = Vector2(64, 56)
@@ -158,6 +164,9 @@ func _build_pause(root: Control) -> void:
 	box.add_child(label("Pausado", 36))
 	var hint := label("Mover: joystick ou WASD · Câmera: arraste à direita ou mouse\nAtacar: toque ou J (segure para carregar) · Esquiva: Espaço\nPoção: Q · Mira na fera: Tab ou botão MIRA", 16, Color(0.8, 0.78, 0.9))
 	box.add_child(hint)
+	info_label = label("", 14, Color(0.65, 0.62, 0.78))
+	info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(info_label)
 	var resume := Button.new()
 	resume.text = "Continuar"
 	resume.custom_minimum_size = Vector2(0, 64)
@@ -172,6 +181,9 @@ func _build_pause(root: Control) -> void:
 
 func show_pause(on: bool) -> void:
 	pause_panel.visible = on
+	if on:
+		info_label.text = "Renderizador: %s  ·  GPU: %s  ·  %d FPS" % [RenderingServer.get_current_rendering_method(),
+			RenderingServer.get_video_adapter_name(), Engine.get_frames_per_second()]
 
 
 func banner(text: String, color := Color.WHITE) -> void:
@@ -197,6 +209,7 @@ func refresh(dt: float, player: HunterPlayer, beast: Beast, faints: int, elapsed
 	action_label.text = ("! " + b + " !") if b != "" else ""
 	var s := int(elapsed)
 	timer_label.text = "%d:%02d" % [s / 60, s % 60]
+	fps_label.text = "%d fps" % Engine.get_frames_per_second()
 	faints_label.text = "Desmaios %d/%d" % [faints, GameData.PLAYER.desmaios_maximos]
 	for id in part_labels:
 		var st: Dictionary = beast.parts[id]

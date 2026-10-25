@@ -14,7 +14,7 @@ static func mat(color: Color, emission := Color.BLACK, energy := 0.0) -> Standar
 	m.specular_mode = BaseMaterial3D.SPECULAR_TOON
 	m.roughness = 0.85
 	m.rim_enabled = true
-	m.rim = 0.35
+	m.rim = 0.15
 	m.rim_tint = 0.6
 	# Emissão sempre ligada para permitir flash de dano e brilho de preparo.
 	m.emission_enabled = true
@@ -233,22 +233,25 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 	sky.sky_material = sky_mat
 	e.background_mode = Environment.BG_SKY
 	e.sky = sky
-	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	e.ambient_light_energy = 0.55
-	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	# Ambiente por cor fixa: no renderizador Compatibility a luz vinda do céu ignora a intensidade.
+	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	e.ambient_light_color = Color(biome.ceu_horizonte)
+	e.ambient_light_energy = 0.2
+	e.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
+	# Linear: no renderizador Compatibility o Filmic clareia a cena em vez de comprimir.
+	e.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	e.fog_enabled = true
 	e.fog_light_color = Color(biome.ceu_horizonte)
 	e.fog_density = 0.004
 	e.fog_sky_affect = 0.3
-	e.glow_enabled = true
-	e.glow_intensity = 0.4
-	e.glow_bloom = 0.05
+	# Glow desligado: caro em celulares e estoura a imagem no renderizador Compatibility.
+	e.glow_enabled = false
 	env.environment = e
 	parent.add_child(env)
 
 	var sun := DirectionalLight3D.new()
 	sun.light_color = Color("#fff1d6")
-	sun.light_energy = 1.15
+	sun.light_energy = 0.75
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 60.0
 	sun.rotation = Vector3(deg_to_rad(-50), deg_to_rad(35), 0)
@@ -347,7 +350,7 @@ void fragment() {
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.mesh = blade
-	var total := 6000
+	var total := 3000
 	mm.instance_count = total
 	for i in total:
 		var a := rng.randf() * TAU

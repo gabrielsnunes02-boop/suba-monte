@@ -50,10 +50,33 @@ func _start_hunt(fera_id: String) -> void:
 	if hub:
 		hub.queue_free()
 		hub = null
+	# Mostra "Carregando" antes de montar a ilha (pode levar alguns segundos em celulares simples).
+	var loading := _loading_screen(GameData.beast_by_id(fera_id).nome)
+	add_child(loading)
+	await get_tree().process_frame
+	await get_tree().process_frame
 	hunt = Hunt.new()
 	hunt.setup(profile, fera_id)
 	hunt.finished.connect(_on_hunt_finished)
 	add_child(hunt)
+	for i in 3:
+		await get_tree().process_frame
+	loading.queue_free()
+
+
+func _loading_screen(beast_name: String) -> CanvasLayer:
+	var layer := CanvasLayer.new()
+	layer.layer = 10
+	var bg := ColorRect.new()
+	bg.color = Hub.C_BG
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(bg)
+	var l := Hud.label("Carregando caçada: %s..." % beast_name, 30, Hub.C_TEXT)
+	l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	bg.add_child(l)
+	return layer
 
 
 func _on_hunt_finished(result: Dictionary) -> void:
