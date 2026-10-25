@@ -34,3 +34,23 @@ static func set_quality(q: int) -> void:
 
 static func preset() -> Dictionary:
 	return PRESETS[quality()]
+
+
+## Personagens disponíveis: id → nome na tela.
+const PERSONAGENS := {"campones": "Camponês", "cavaleiro": "Cavaleiro"}
+
+
+static func character() -> String:
+	var cfg := ConfigFile.new()
+	if cfg.load(PATH) == OK:
+		var c: String = cfg.get_value("visual", "personagem", "campones")
+		if PERSONAGENS.has(c):
+			return c
+	return "campones"
+
+
+static func set_character(c: String) -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(PATH)
+	cfg.set_value("visual", "personagem", c)
+	cfg.save(PATH)

@@ -90,7 +90,7 @@ func _ready() -> void:
 func _prewarm() -> void:
 	var at := player.position + Vector3(0, 1.0, -3.0)
 	fx.burst(at, Color.WHITE, 2, 1.0)
-	fx.text(at, "0")
+	fx.text(at, "0", Color(1, 1, 1, 0.02))
 	for t in [["setor", 3.0, 90.0], ["investida", 1.5, 0.0], ["circulo", 3.0, 360.0]]:
 		var tg := Models.build_telegraph(t[0], t[1], t[2], 4.0)
 		tg.group.position = Vector3(at.x, 0.08, at.z)

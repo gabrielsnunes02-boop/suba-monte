@@ -9,7 +9,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 | Sistema | O que tem |
 |---|---|
-| Personagem | Caçador **KayKit Knight** (CC0) com esqueleto e animações prontas: parado, corrida, 3 golpes de espada de duas mãos, golpe carregado, esquiva, poção, dano e desmaio |
+| Personagem | Dois caçadores (escolha no acampamento): **Camponês** (`Male_Peasant`, esqueleto padrão do Unreal) com animações da **Universal Animation Library** da Quaternius, e **Cavaleiro** (KayKit Knight) com as animações do pacote. Parado, corrida, golpes, golpe carregado, esquiva, poção, dano e desmaio |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
 | Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
 | Feras | **Onça-Brasa** (Fogo), **Tatu-Musgo** (Natureza), **Jacaré-Maré** (Água, Tier 2) |
@@ -20,13 +20,17 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Progressão | Rank de caçador (libera feras), bestiário com abates e recorde, progresso salvo no aparelho (offline) |
 | Visual | Ilha flutuante estilizada (toon), céu, neblina, grama animada por shader, árvores, o Monte ao fundo |
 
+As animações passam de um esqueleto para outro pelo **redirecionamento humanoide** da Godot: cada modelo tem um `BoneMap` (`*_bonemap.tres`) ligado no seu arquivo `.import`. Qualquer personagem humano novo (Mixamo, Unreal, Rigify) pode usar as mesmas animações criando um `BoneMap` para ele.
+
 As feras e o cenário ainda são gerados por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`.
 
 No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de grama, antisserrilhado). Se travar, use Baixo.
 
 ## Créditos
 
-- Personagem: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/personagens/kaykit/LICENSE.txt`).
+- Animações do Camponês: [Universal Animation Library](https://quaternius.com), de Quaternius — licença CC0 (`assets/animacoes/quaternius/LICENSE.txt`).
+- Modelo do Camponês (`assets/personagens/peasant/`): enviado pelo autor do projeto; confirme a licença de uso antes de publicar o jogo.
+- Personagem Cavaleiro e espada: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/personagens/kaykit/LICENSE.txt`).
 
 ## Controles
 

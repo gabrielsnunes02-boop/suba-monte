@@ -19,8 +19,6 @@ const DRINK_DUR := 0.9
 const STAGGER_DUR := 0.45
 const SOFT_LOCK_RANGE := 9.0
 const REACH := 1.9
-const LIGHT_CLIPS := ["2H_Melee_Attack_Slice", "2H_Melee_Attack_Stab", "2H_Melee_Attack_Spin"]
-const HEAVY_CLIP := "2H_Melee_Attack_Chop"
 ## Fração do golpe pesado em que o personagem fica parado carregando.
 const HEAVY_WINDUP := 0.28
 
@@ -60,7 +58,7 @@ func setup(h: Hunt) -> void:
 	var blade_color := Color("#c9d1dc") if h.weapon.elemento == "neutro" else GameData.element_color(h.weapon.elemento)
 	_model = HunterModel.new()
 	add_child(_model)
-	_model.setup(armor_color, blade_color)
+	_model.setup(Settings.character(), armor_color, blade_color)
 
 
 func has_perk(p: String) -> bool:
@@ -328,19 +326,19 @@ func _strike(motion: float, heavy: bool) -> void:
 func _enter_animation(s: State) -> void:
 	match s:
 		State.ATAQUE:
-			_model.play(LIGHT_CLIPS[_combo], LIGHT[_combo].dur, true, 0.05)
+			_model.play("light%d" % _combo, LIGHT[_combo].dur, true, 0.05)
 		State.CARREGANDO:
-			_model.hold_at(HEAVY_CLIP, HEAVY_WINDUP)
+			_model.hold_at("heavy", HEAVY_WINDUP)
 		State.PESADO:
-			_model.resume_from(HEAVY_CLIP, HEAVY_WINDUP, HEAVY_DUR)
+			_model.resume_from("heavy", HEAVY_WINDUP, HEAVY_DUR)
 		State.ESQUIVA:
-			_model.play("Dodge_Forward", DODGE_DUR, true, 0.05)
+			_model.play("dodge", DODGE_DUR, true, 0.05)
 		State.BEBENDO:
-			_model.play("Use_Item", DRINK_DUR, true)
+			_model.play("drink", DRINK_DUR, true)
 		State.ATINGIDO:
-			_model.play("Hit_A", STAGGER_DUR, true, 0.05)
+			_model.play("hit", STAGGER_DUR, true, 0.05)
 		State.CAIDO:
-			_model.play("Death_A", 1.2, true, 0.05)
+			_model.play("death", 1.2, true, 0.05)
 
 
 ## Clipes contínuos (parado/correndo) e direção do corpo, a cada quadro.
@@ -348,6 +346,6 @@ func _animate(walking: bool, mag: float) -> void:
 	_model.rotation.y = facing
 	if state == State.LIVRE:
 		if walking:
-			_model.play("Running_A", 0.0, false, 0.15, clampf(mag * 1.15, 0.6, 1.25))
+			_model.play("run", 0.0, false, 0.15, clampf(mag * 1.15, 0.6, 1.25))
 		else:
-			_model.play("2H_Melee_Idle", 0.0, false, 0.2)
+			_model.play("idle", 0.0, false, 0.2)
