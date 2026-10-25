@@ -44,7 +44,7 @@ Todos os modelos são gerados por código (nenhum asset externo). Trocar por mod
 1. Na Godot: **Editor → Gerenciar modelos de exportação → Baixar e instalar**.
 2. **Editor → Configurações do editor → Exportar → Android**: aponte o Java (JDK 17) e o Android SDK
    (guia oficial: https://docs.godotengine.org/pt-br/4.x/tutorials/export/exporting_for_android.html).
-3. **Projeto → Exportar → Adicionar… → Android → Exportar projeto** para gerar o `.apk`, ou use o botão
+3. **Projeto → Exportar** → o preset **Android** já vem configurado (`export_presets.cfg`, só ARM64, sem Gradle) → **Exportar projeto** para gerar o `.apk`, ou use o botão
    **Implantação com um clique** (ícone do Android no canto superior direito) com o celular ligado no USB em modo desenvolvedor.
 
 O projeto usa o renderizador **Mobile** (Vulkan), em paisagem, com compressão de texturas ETC2/ASTC já ligada.
