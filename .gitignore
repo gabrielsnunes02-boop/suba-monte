@@ -1,4 +1,14 @@
+# Godot
+.godot/
+*.import.tmp
+export/
+*.apk
+*.aab
+android/build/
+
+# Protótipo web
 node_modules
 dist
+
 .DS_Store
 .env*.local

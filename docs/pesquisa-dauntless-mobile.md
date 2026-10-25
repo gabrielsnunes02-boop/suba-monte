@@ -435,7 +435,7 @@ Dauntless tinha **várias camadas de progressão paralelas** ✅ ⚠️:
 | **Anti-cheat** | Validação de loot e crafting **no servidor**; cliente só pede | — | Inventário nunca confiável no cliente |
 | **Performance-alvo** | 30 fps estáveis (60 opcional) em Android mid-range de ~3 anos; < 2 GB RAM; download inicial < 300 MB + pacotes sob demanda (Addressables) | — | Alcance de público |
 
-> **Decisão do protótipo:** o primeiro protótipo jogável foi feito em **TypeScript + Three.js** (web/PWA), porque roda direto no navegador do celular, é fácil de testar e pode ser empacotado para as lojas com Capacitor. Se o projeto crescer (co-op pesado, arte de alta qualidade), migrar para Unity reaproveitando os dados e fórmulas de `src/game/`.
+> **Decisão atual:** o jogo é feito na **Godot 4** (renderizador Mobile, GDScript), com câmera em terceira pessoa estilo Dauntless. O primeiro protótipo em TypeScript + Three.js ficou em `prototipo-web/` como referência.
 
 ### 18.3 Controles de toque
 
