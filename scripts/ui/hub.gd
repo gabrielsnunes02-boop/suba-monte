@@ -303,18 +303,6 @@ func _render_home() -> void:
 	gfx.add_child(_label("Se travar, use Baixo.", 16, C_MUTED))
 	_content.add_child(gfx)
 
-	var who := HBoxContainer.new()
-	who.alignment = BoxContainer.ALIGNMENT_CENTER
-	who.add_theme_constant_override("separation", 10)
-	who.add_child(_label("Personagem:", 18, C_MUTED))
-	for id in Settings.PERSONAGENS:
-		var b := _button(Settings.PERSONAGENS[id], func():
-			Settings.set_character(id)
-			render(), Settings.character() == id)
-		b.custom_minimum_size = Vector2(160, 50)
-		who.add_child(b)
-	_content.add_child(who)
-
 	var foot := HBoxContainer.new()
 	foot.alignment = BoxContainer.ALIGNMENT_CENTER
 	foot.add_child(_label("Progresso salvo neste aparelho.", 16, C_MUTED))

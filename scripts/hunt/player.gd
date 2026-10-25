@@ -54,11 +54,10 @@ func setup(h: Hunt) -> void:
 			_perks.append(p)
 	max_hp = roundf(GameData.PLAYER.vida * (1.2 if has_perk("pele_grossa") else 1.0))
 	hp = max_hp
-	var armor_color := Color("#8a6a4a") if h.armor.elemento == "neutro" else GameData.element_color(h.armor.elemento)
 	var blade_color := Color("#c9d1dc") if h.weapon.elemento == "neutro" else GameData.element_color(h.weapon.elemento)
 	_model = HunterModel.new()
 	add_child(_model)
-	_model.setup(Settings.character(), armor_color, blade_color)
+	_model.setup(blade_color)
 
 
 func has_perk(p: String) -> bool:

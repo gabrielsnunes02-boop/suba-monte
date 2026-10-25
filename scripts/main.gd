@@ -19,8 +19,6 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.trim_prefix("--").split("=", true, 1)
 		_args[kv[0]] = kv[1] if kv.size() > 1 else "1"
-	if _args.has("character"):
-		Settings.set_character(_args.character)
 	if _args.has("quality"):
 		Settings.set_quality(int(_args.quality))
 	profile = ProfileLogic.load_profile()

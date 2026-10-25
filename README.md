@@ -9,7 +9,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 | Sistema | O que tem |
 |---|---|
-| Personagem | Dois caçadores (escolha no acampamento): **Camponês** (`Male_Peasant`, esqueleto padrão do Unreal) com animações da **Universal Animation Library** da Quaternius, e **Cavaleiro** (KayKit Knight) com as animações do pacote. Parado, corrida, golpes, golpe carregado, esquiva, poção, dano e desmaio |
+| Personagem | Caçador **Camponês** (`Male_Peasant`, esqueleto padrão do Unreal) com animações da **Universal Animation Library** da Quaternius: guarda com espada, corrida, golpe, golpe carregado, rolamento, poção, dano e desmaio |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
 | Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
 | Feras | **Onça-Brasa** (Fogo), **Tatu-Musgo** (Natureza), **Jacaré-Maré** (Água, Tier 2) |
@@ -30,7 +30,7 @@ No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3
 
 - Animações do Camponês: [Universal Animation Library](https://quaternius.com), de Quaternius — licença CC0 (`assets/animacoes/quaternius/LICENSE.txt`).
 - Modelo do Camponês (`assets/personagens/peasant/`): enviado pelo autor do projeto; confirme a licença de uso antes de publicar o jogo.
-- Personagem Cavaleiro e espada: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/personagens/kaykit/LICENSE.txt`).
+- Espada: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/armas/kaykit/LICENSE.txt`).
 
 ## Controles
 
