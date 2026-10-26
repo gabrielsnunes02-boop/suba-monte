@@ -15,6 +15,8 @@ var _banner_tween: Tween
 var _beast_def: Dictionary
 var _hp_ghost := 1.0
 var _beast_ghost := 1.0
+var _static_rect := TextureRect.new()
+var _last_sig := []
 
 
 static func bar(fill: Color, bg := Color(0, 0, 0, 0.55), h := 14.0) -> ProgressBar:
@@ -55,6 +57,9 @@ func build(beast_def: Dictionary, weapon: Dictionary, weapon_level: int) -> void
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = UiStyle.make_theme()
 	add_child(root)
+	_static_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_static_rect)
+	canvas.layer = "dynamic"
 	root.add_child(canvas)
 	canvas.d.weapon = "%s +%d" % [weapon.nome, weapon_level]
 	canvas.d.weapon_color = GameData.element_color(weapon.elemento)
@@ -62,6 +67,10 @@ func build(beast_def: Dictionary, weapon: Dictionary, weapon_level: int) -> void
 	canvas.d.max_level = GameData.MAX_UPGRADE
 	canvas.d.max_faints = GameData.PLAYER.desmaios_maximos
 	canvas.d.beast = beast_def.nome
+	var parts := []
+	for p in beast_def.partes:
+		parts.append({"nome": p.nome, "ferida": false, "quebrada": false})
+	canvas.d.parts = parts
 	canvas.d.beast_color = GameData.element_color(beast_def.elemento)
 
 	# Botão de pausa invisível sobre o losango desenhado no canto.
@@ -87,6 +96,18 @@ func build(beast_def: Dictionary, weapon: Dictionary, weapon_level: int) -> void
 	root.add_child(banner_label)
 
 	_build_pause(root)
+	_bake_static.call_deferred()
+
+
+## Molduras, brasões e nomes não mudam durante a caçada: viram uma textura só.
+func _bake_static() -> void:
+	var sz := Vector2i(get_viewport().get_visible_rect().size)
+	var painter := HudCanvas.new()
+	painter.layer = "static"
+	painter.d = canvas.d.duplicate(true)
+	painter.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_static_rect.texture = await HudBake.bake_node(self, Vector2i(sz.x, 200), painter)
+	_static_rect.position = Vector2.ZERO
 
 
 func _build_pause(root: Control) -> void:
@@ -169,6 +190,13 @@ func refresh(dt: float, player: HunterPlayer, beast: Beast, faints: int, elapsed
 	if cam:
 		var to_b := (beast.global_position - cam.global_position) * Vector3(1, 0, 1)
 		var fwd := -cam.global_basis.z * Vector3(1, 0, 1)
-		d.compass = fwd.signed_angle_to(to_b, Vector3.UP) * -1.0
+		# Em passos de 6° para não redesenhar a cada pequeno giro da câmera.
+		d.compass = snappedf(fwd.signed_angle_to(to_b, Vector3.UP) * -1.0, deg_to_rad(6.0))
 		d.compass_on = to_b.length() > 0.1
-	canvas.queue_redraw()
+	# Só redesenha quando algo visível mudou.
+	var sig := [snappedf(d.hp, 0.003), snappedf(d.hp_ghost, 0.003), snappedf(d.st, 0.005), snappedf(d.focus, 0.01),
+		d.charging, d.sharp, faints, snappedf(d.beast_hp, 0.002), snappedf(d.beast_ghost, 0.002), d.fury, d.action,
+		str(d.parts), d.time, d.fps, d.compass, d.compass_on]
+	if sig != _last_sig:
+		_last_sig = sig
+		canvas.queue_redraw()

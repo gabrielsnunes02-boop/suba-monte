@@ -403,7 +403,7 @@ static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGe
 		trees.append(Vector3(p.x, 1.8 * s, p.z))
 	# Algumas árvores dentro da borda da arena (como nas áreas do MH), com tronco sólido.
 	obstacles.clear()
-	for i in int(preset.arvores) / 4:
+	for i in (int(preset.arvores) / 4 if preset.mata else 0):
 		var p: Vector3 = ring.call(ARENA_RADIUS - 7.0, ARENA_RADIUS - 2.5)
 		var s := rng.randf_range(1.4, 2.0)
 		var model: String = tree_models[(i + 1) % tree_models.size()]
@@ -417,7 +417,7 @@ static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGe
 	var plants: Array = biome.plantas
 	var details := int(preset.detalhes)
 	# Samambaias gigantes na borda, nas regiões úmidas.
-	if plants.has("Fern_1"):
+	if plants.has("Fern_1") and preset.mata:
 		for i in details / 3:
 			add.call("Fern_1", ring.call(ARENA_RADIUS - 3.0, ARENA_RADIUS + 7.0), rng.randf_range(1.6, 2.8))
 	for i in details:

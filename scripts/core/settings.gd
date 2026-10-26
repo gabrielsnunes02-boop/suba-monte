@@ -8,14 +8,15 @@ const NOMES := ["Baixo", "Médio", "Alto"]
 ## Por nível: resolução 3D, sombras em tempo real, grama, MSAA, árvores (e quanto dos galhos
 ## fica na versão simplificada) e plantas do kit,
 ## materiais simples (sem mapas de relevo/rugosidade), luz por vértice (bem mais barata) e
-## limite de FPS (30 estável é melhor que 40 oscilando; 0 = sem limite).
+## limite de FPS (30 estável é melhor que 40 oscilando; 0 = sem limite) e mata fechada (árvores dentro
+## da arena e samambaias gigantes: folhagem recortada perto da câmera pesa nas GPUs fracas).
 const PRESETS := [
 	{"escala_3d": 0.55, "sombras": false, "grama": 500, "msaa": false, "arvores": 14, "galhos": 0.12, "detalhes": 36,
-		"simples": true, "vertice": true, "fps": 30},
+		"simples": true, "vertice": true, "fps": 30, "mata": false},
 	{"escala_3d": 0.75, "sombras": false, "grama": 1400, "msaa": false, "arvores": 20, "galhos": 0.25, "detalhes": 90,
-		"simples": true, "vertice": false, "fps": 30},
+		"simples": true, "vertice": false, "fps": 30, "mata": true},
 	{"escala_3d": 1.0, "sombras": true, "grama": 3200, "msaa": true, "arvores": 30, "galhos": 0.5, "detalhes": 240,
-		"simples": false, "vertice": false, "fps": 0},
+		"simples": false, "vertice": false, "fps": 0, "mata": true},
 ]
 ## GPUs de entrada: o jogo já começa em Baixo nelas.
 const GPUS_FRACAS := ["PowerVR Rogue GE", "PowerVR Rogue GX", "PowerVR Rogue G6", "Mali-4", "Mali-T",

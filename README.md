@@ -98,6 +98,7 @@ scripts/
     hub.gd                 acampamento (caçar, forja, equipamento, inventário, resultado)
     hud.gd                 HUD da caçada e pausa (valores)
     hud_canvas.gd          desenho do HUD (brasão, barras inclinadas, barra da fera, tempo)
+    hud_bake.gd            "assa" desenhos fixos em texturas (HUD e botões: poucas chamadas de desenho)
     ui_style.gd            visual azul-aço dos menus (texturas geradas por código)
     menu_scene.gd          cena 3D dos menus (fera em destaque, mapa de ilhas)
     menu_icon.gd           ícones redondos desenhados por código
