@@ -60,6 +60,18 @@ func setup(h: Hunt) -> void:
 	_model.setup(Settings.outfit(), blade_color)
 
 
+## Barra azul do HUD: carga do golpe pesado enquanto segura, senão o "foco" (3 s sem sofrer dano,
+## o mesmo tempo do perk Caçador Paciente).
+func focus() -> float:
+	if state == State.CARREGANDO:
+		return _charge
+	return clampf((_time - _last_damaged_at) / 3.0, 0.0, 1.0)
+
+
+func is_charging() -> bool:
+	return state == State.CARREGANDO
+
+
 func has_perk(p: String) -> bool:
 	return _perks.has(p)
 

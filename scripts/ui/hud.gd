@@ -6,22 +6,15 @@ signal resume_requested
 signal quit_requested
 signal pause_requested
 
-var hp_bar: ProgressBar
-var hp_ghost: ProgressBar
-var st_bar: ProgressBar
-var beast_bar: ProgressBar
-var beast_ghost: ProgressBar
-var faints_label: Label
-var fury_label: Label
-var action_label: Label
-var timer_label: Label
-var fps_label: Label
+var canvas := HudCanvas.new()
 var render_scale := 1.0
 var info_label: Label
 var banner_label: Label
-var part_labels := {}
 var pause_panel: Control
 var _banner_tween: Tween
+var _beast_def: Dictionary
+var _hp_ghost := 1.0
+var _beast_ghost := 1.0
 
 
 static func bar(fill: Color, bg := Color(0, 0, 0, 0.55), h := 14.0) -> ProgressBar:
@@ -56,92 +49,40 @@ static func label(text: String, size := 20, color := Color.WHITE) -> Label:
 
 func build(beast_def: Dictionary, weapon: Dictionary, weapon_level: int) -> void:
 	layer = 1
+	_beast_def = beast_def
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = UiStyle.make_theme()
 	add_child(root)
+	root.add_child(canvas)
+	canvas.d.weapon = "%s +%d" % [weapon.nome, weapon_level]
+	canvas.d.weapon_color = GameData.element_color(weapon.elemento)
+	canvas.d.level = weapon_level
+	canvas.d.max_level = GameData.MAX_UPGRADE
+	canvas.d.max_faints = GameData.PLAYER.desmaios_maximos
+	canvas.d.beast = beast_def.nome
+	canvas.d.beast_color = GameData.element_color(beast_def.elemento)
 
-	# Jogador (topo esquerdo)
-	var pbox := VBoxContainer.new()
-	pbox.position = Vector2(24, 18)
-	pbox.custom_minimum_size = Vector2(340, 0)
-	pbox.add_theme_constant_override("separation", 6)
-	root.add_child(pbox)
-	var stack := Control.new()
-	stack.custom_minimum_size = Vector2(340, 20)
-	pbox.add_child(stack)
-	hp_ghost = bar(Color(1, 1, 1, 0.6), Color(0, 0, 0, 0.55), 20)
-	hp_bar = bar(Color("#3fbf6a"), Color(0, 0, 0, 0), 20)
-	for b in [hp_ghost, hp_bar]:
-		b.set_anchors_preset(Control.PRESET_FULL_RECT)
-		stack.add_child(b)
-	st_bar = bar(Color("#facc15"), Color(0, 0, 0, 0.55), 9)
-	pbox.add_child(st_bar)
-	faints_label = label("Desmaios 0/3", 18, Color("#ff8a8a"))
-	pbox.add_child(faints_label)
-	pbox.add_child(label("%s +%d" % [weapon.nome, weapon_level], 16, GameData.element_color(weapon.elemento)))
-
-	# Fera (topo centro)
-	var bbox := VBoxContainer.new()
-	bbox.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	bbox.custom_minimum_size = Vector2(460, 0)
-	bbox.position = Vector2(-230, 14)
-	bbox.alignment = BoxContainer.ALIGNMENT_BEGIN
-	bbox.add_theme_constant_override("separation", 5)
-	root.add_child(bbox)
-	var name_row := HBoxContainer.new()
-	name_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	name_row.add_theme_constant_override("separation", 10)
-	name_row.add_child(label(beast_def.nome, 24, GameData.element_color(beast_def.elemento).lightened(0.3)))
-	fury_label = label("FÚRIA", 18, Color("#ff5a5a"))
-	fury_label.visible = false
-	name_row.add_child(fury_label)
-	bbox.add_child(name_row)
-	var bstack := Control.new()
-	bstack.custom_minimum_size = Vector2(460, 14)
-	bbox.add_child(bstack)
-	beast_ghost = bar(Color(1, 1, 1, 0.55))
-	beast_bar = bar(Color("#e8571a"), Color(0, 0, 0, 0))
-	for b in [beast_ghost, beast_bar]:
-		b.set_anchors_preset(Control.PRESET_FULL_RECT)
-		bstack.add_child(b)
-	var parts_row := HBoxContainer.new()
-	parts_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	parts_row.add_theme_constant_override("separation", 14)
-	for p in beast_def.partes:
-		var l := label(p.nome, 16, Color(1, 1, 1, 0.85))
-		part_labels[p.id] = l
-		parts_row.add_child(l)
-	bbox.add_child(parts_row)
-	action_label = label("", 20, Color("#fca5a5"))
-	action_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bbox.add_child(action_label)
-
-	# Tempo e pausa (topo direito)
-	var tbox := HBoxContainer.new()
-	tbox.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	tbox.position = Vector2(-190, 16)
-	tbox.add_theme_constant_override("separation", 12)
-	root.add_child(tbox)
-	var tcol := VBoxContainer.new()
-	timer_label = label("0:00", 24)
-	tcol.add_child(timer_label)
-	fps_label = label("", 14, Color(1, 1, 1, 0.7))
-	tcol.add_child(fps_label)
-	tbox.add_child(tcol)
+	# Botão de pausa invisível sobre o losango desenhado no canto.
 	var pause_btn := Button.new()
-	pause_btn.text = "II"
-	pause_btn.custom_minimum_size = Vector2(64, 56)
-	pause_btn.add_theme_font_size_override("font_size", 24)
+	pause_btn.flat = true
+	pause_btn.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	pause_btn.offset_left = -110
+	pause_btn.offset_right = -14
+	pause_btn.offset_top = 6
+	pause_btn.offset_bottom = 100
+	for st in ["normal", "hover", "pressed", "focus"]:
+		pause_btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
 	pause_btn.pressed.connect(func(): pause_requested.emit())
-	tbox.add_child(pause_btn)
+	root.add_child(pause_btn)
 
 	# Aviso central
 	banner_label = label("", 46)
 	banner_label.set_anchors_preset(Control.PRESET_CENTER)
 	banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	banner_label.size = Vector2(1000, 80)
-	banner_label.position = Vector2(-500, -220)
+	banner_label.position = Vector2(-500, -200)
 	banner_label.modulate.a = 0.0
 	root.add_child(banner_label)
 
@@ -200,24 +141,34 @@ func banner(text: String, color := Color.WHITE) -> void:
 
 
 func refresh(dt: float, player: HunterPlayer, beast: Beast, faints: int, elapsed: float) -> void:
-	hp_bar.value = player.hp / player.max_hp
-	hp_ghost.value = maxf(hp_bar.value, hp_ghost.value - dt * 0.4)
-	st_bar.value = player.stamina / GameData.PLAYER.stamina
-	beast_bar.value = beast.hp / beast.max_hp
-	beast_ghost.value = maxf(beast_bar.value, beast_ghost.value - dt * 0.25)
-	fury_label.visible = beast.fury
-	var b := beast.busy()
-	action_label.text = ("! " + b + " !") if b != "" else ""
+	var d := canvas.d
+	d.hp = player.hp / player.max_hp
+	_hp_ghost = maxf(d.hp, _hp_ghost - dt * 0.4)
+	d.hp_ghost = _hp_ghost
+	d.st = player.stamina / GameData.PLAYER.stamina
+	d.focus = player.focus()
+	d.charging = player.is_charging()
+	d.sharp = player.sharp
+	d.faints = faints
+	d.beast_hp = beast.hp / beast.max_hp
+	_beast_ghost = maxf(d.beast_hp, _beast_ghost - dt * 0.25)
+	d.beast_ghost = _beast_ghost
+	d.fury = beast.fury
+	d.action = beast.busy()
+	var parts := []
+	for p in _beast_def.partes:
+		var st: Dictionary = beast.parts[p.id]
+		parts.append({"nome": p.nome, "ferida": st.ferida, "quebrada": st.quebrada})
+	d.parts = parts
 	var s := int(elapsed)
-	timer_label.text = "%d:%02d" % [s / 60, s % 60]
+	d.time = "%d:%02d" % [s / 60, s % 60]
 	if Engine.get_process_frames() % 30 == 0:
-		fps_label.text = "%d fps · %d%%" % [Engine.get_frames_per_second(), roundi(render_scale * 100.0)]
-	faints_label.text = "Desmaios %d/%d" % [faints, GameData.PLAYER.desmaios_maximos]
-	for id in part_labels:
-		var st: Dictionary = beast.parts[id]
-		var l: Label = part_labels[id]
-		if st.quebrada:
-			l.add_theme_color_override("font_color", Color("#6ee7a0"))
-			l.text = st.def.nome + " (quebrada)"
-		elif st.ferida:
-			l.add_theme_color_override("font_color", Color("#fdba74"))
+		d.fps = "%d fps · %d%%" % [Engine.get_frames_per_second(), roundi(render_scale * 100.0)]
+	# Bússola: direção da fera em relação para onde a câmera olha.
+	var cam := get_viewport().get_camera_3d()
+	if cam:
+		var to_b := (beast.global_position - cam.global_position) * Vector3(1, 0, 1)
+		var fwd := -cam.global_basis.z * Vector3(1, 0, 1)
+		d.compass = fwd.signed_angle_to(to_b, Vector3.UP) * -1.0
+		d.compass_on = to_b.length() > 0.1
+	canvas.queue_redraw()
