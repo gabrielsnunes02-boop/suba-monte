@@ -33,6 +33,24 @@ const MATERIALS := {
 	"mandibula_mare": {"nome": "Mandíbula Abissal", "raridade": "incomum", "descricao": "Quebre a cabeça do Rex-Maré."},
 	"cauda_mare": {"nome": "Cauda de Correnteza", "raridade": "incomum", "descricao": "Corte a cauda do Rex-Maré."},
 	"coracao_mare": {"nome": "Coração de Maré", "raridade": "raro", "descricao": "Ouve-se o mar dentro dele."},
+
+	"pele_nevoa": {"nome": "Pele de Névoa", "raridade": "comum", "descricao": "Lisa e sempre fria."},
+	"crista_nevoa": {"nome": "Crista Sonora", "raridade": "incomum", "descricao": "Assobia com o vento."},
+	"cranio_nevoa": {"nome": "Crânio de Névoa", "raridade": "incomum", "descricao": "Quebre a cabeça da Crista-Névoa."},
+	"cauda_nevoa": {"nome": "Cauda de Névoa", "raridade": "incomum", "descricao": "Corte a cauda da Crista-Névoa."},
+	"coracao_nevoa": {"nome": "Coração de Névoa", "raridade": "raro", "descricao": "Solta vapor em silêncio."},
+
+	"placa_espinho": {"nome": "Placa Espinhosa", "raridade": "comum", "descricao": "Dura como casca de árvore velha."},
+	"chifre_espinho": {"nome": "Chifre Verde", "raridade": "incomum", "descricao": "Cresce de novo a cada estação."},
+	"escudo_espinho": {"nome": "Escudo do Tri-Espinho", "raridade": "incomum", "descricao": "Quebre a cabeça do Tri-Espinho."},
+	"cauda_espinho": {"nome": "Cauda Espinhosa", "raridade": "incomum", "descricao": "Corte a cauda do Tri-Espinho."},
+	"coracao_espinho": {"nome": "Coração de Cerne", "raridade": "raro", "descricao": "Tem anéis como um tronco."},
+
+	"escama_tita": {"nome": "Escama de Cinza", "raridade": "comum", "descricao": "Cheira a vulcão."},
+	"osso_tita": {"nome": "Osso Colossal", "raridade": "incomum", "descricao": "Pesado demais para um só caçador."},
+	"cranio_tita": {"nome": "Crânio do Titã", "raridade": "incomum", "descricao": "Quebre a cabeça do Titã-Cinza."},
+	"cauda_tita": {"nome": "Cauda do Titã", "raridade": "incomum", "descricao": "Corte a cauda do Titã-Cinza."},
+	"coracao_tita": {"nome": "Coração de Magma", "raridade": "raro", "descricao": "Brilha no escuro como lava."},
 }
 
 const PERKS := {
@@ -71,10 +89,32 @@ const GEAR := {
 	"couraca_mare": {"nome": "Couraça de Maré", "slot": "armadura", "elemento": "agua", "base": 0.24, "perk": "folego_longo",
 		"fera": "jacare_mare", "receita": {"escama_mare": 5, "cauda_mare": 1, "fibra": 5}, "custo": 700,
 		"material_upgrade": "escama_mare", "material_raro": "coracao_mare"},
+
+	"lamina_nevoa": {"nome": "Lâmina de Névoa", "slot": "arma", "elemento": "agua", "base": 52.0, "perk": "esquiva_afiada",
+		"fera": "crista_nevoa", "receita": {"pele_nevoa": 3, "crista_nevoa": 2, "minerio": 4}, "custo": 300,
+		"material_upgrade": "pele_nevoa", "material_raro": "coracao_nevoa"},
+	"couraca_nevoa": {"nome": "Couraça de Névoa", "slot": "armadura", "elemento": "agua", "base": 0.15, "perk": "folego_longo",
+		"fera": "crista_nevoa", "receita": {"pele_nevoa": 4, "cranio_nevoa": 1, "fibra": 3}, "custo": 300,
+		"material_upgrade": "pele_nevoa", "material_raro": "coracao_nevoa"},
+
+	"lamina_espinho": {"nome": "Lâmina Espinhosa", "slot": "arma", "elemento": "natureza", "base": 68.0, "perk": "quebra_ossos",
+		"fera": "tri_espinho", "receita": {"placa_espinho": 4, "chifre_espinho": 2, "escudo_espinho": 1, "minerio": 6}, "custo": 700,
+		"material_upgrade": "placa_espinho", "material_raro": "coracao_espinho"},
+	"couraca_espinho": {"nome": "Couraça Espinhosa", "slot": "armadura", "elemento": "natureza", "base": 0.26, "perk": "pele_grossa",
+		"fera": "tri_espinho", "receita": {"placa_espinho": 5, "cauda_espinho": 1, "fibra": 5}, "custo": 700,
+		"material_upgrade": "placa_espinho", "material_raro": "coracao_espinho"},
+
+	"lamina_tita": {"nome": "Lâmina do Titã", "slot": "arma", "elemento": "fogo", "base": 86.0, "perk": "ultimo_folego",
+		"fera": "tita_cinza", "receita": {"escama_tita": 5, "osso_tita": 3, "cranio_tita": 1, "minerio": 8}, "custo": 1400,
+		"material_upgrade": "escama_tita", "material_raro": "coracao_tita"},
+	"couraca_tita": {"nome": "Couraça do Titã", "slot": "armadura", "elemento": "fogo", "base": 0.32, "perk": "cacador_paciente",
+		"fera": "tita_cinza", "receita": {"escama_tita": 6, "cauda_tita": 1, "osso_tita": 2, "fibra": 6}, "custo": 1400,
+		"material_upgrade": "escama_tita", "material_raro": "coracao_tita"},
 }
 
 const GEAR_ORDER := ["espada_ferro", "roupa_couro", "lamina_brasa", "couraca_brasa", "lamina_musgo",
-	"couraca_musgo", "lamina_mare", "couraca_mare"]
+	"couraca_musgo", "lamina_nevoa", "couraca_nevoa", "lamina_mare", "couraca_mare", "lamina_espinho",
+	"couraca_espinho", "lamina_tita", "couraca_tita"]
 
 const MAX_UPGRADE := 10
 
@@ -140,6 +180,66 @@ const BEASTS := [
 			"plantas": ["Bush_Common_Flowers", "Fern_1", "Flower_3_Group", "Flower_4_Group", "Mushroom_Common", "Clover_1"]},
 	},
 	{
+		"id": "crista_nevoa", "nome": "Crista-Névoa", "apelido": "A Voz do Lago", "tier": 1, "rank_minimo": 1,
+		"elemento": "agua", "vida": 2400.0, "velocidade": 5.0, "defesa": 0.05, "limite_atordoamento": 240.0,
+		"descricao": "Ágil e barulhenta. O grito empurra tudo ao redor: afaste-se quando ela erguer a crista.",
+		"partes": [
+			{"id": "cabeca", "nome": "Crista", "vida": 480.0, "drop": "cranio_nevoa"},
+			{"id": "costas", "nome": "Dorso", "vida": 560.0, "drop": "crista_nevoa"},
+			{"id": "cauda", "nome": "Cauda", "vida": 400.0, "drop": "cauda_nevoa"},
+		],
+		"ataques": [
+			{"id": "cabecada", "nome": "Cabeçada", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 4.0, "raio": 4.4, "angulo": 90.0, "preparo": 0.6, "dano": 14.0, "recuperacao": 0.8, "so_furia": false},
+			{"id": "disparada", "nome": "Disparada", "tipo": "investida", "alcance_min": 5.0, "alcance_max": 18.0, "raio": 1.8, "angulo": 0.0, "preparo": 0.8, "dano": 18.0, "recuperacao": 1.0, "so_furia": false},
+			{"id": "grito", "nome": "Grito da Névoa", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 6.0, "raio": 5.5, "angulo": 360.0, "preparo": 1.0, "dano": 16.0, "recuperacao": 1.1, "so_furia": false},
+			{"id": "tempestade", "nome": "Tempestade de Névoa", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 8.0, "raio": 7.5, "angulo": 360.0, "preparo": 1.3, "dano": 26.0, "recuperacao": 1.3, "so_furia": true},
+		],
+		"loot": [
+			{"item": "pele_nevoa", "chance": 1.0, "qtd": [2, 3]},
+			{"item": "crista_nevoa", "chance": 0.6, "qtd": [1, 2]},
+			{"item": "coracao_nevoa", "chance": 0.12, "qtd": [1, 1]},
+		],
+		"moedas": [170, 250], "xp": 80,
+		"modelo": "Parasaurolophus",
+		"visual": {"cor_corpo": "#5d7f9a", "cor_detalhe": "#e3e9f0", "cor_olhos": "#bfefff", "comprimento": 5.5,
+			"altura": 2.7, "largura": 1.1, "pernas": 1.2, "cauda_segmentos": 5, "espinhos": "cristas"},
+		"bioma": {"chao": "#3f7a5e", "grama": "#55895c", "ceu_topo": "#c4d6de", "ceu_horizonte": "#c4d8dc",
+			"neblina": "#c4d8dc", "luz": "#f4fbff", "sombra": "#2c4048", "raio": "#e0f4ff1c",
+			"tint_grama": "#dcf0e4", "tint_terra": "#e0e0d8", "tint_rocha": "#dce6ea", "arvore": "#2c6650", "pedra": "#56706e",
+			"arvores": ["Pine_1", "Pine_2", "CommonTree_2", "Pine_5"],
+			"plantas": ["Fern_1", "Grass_Common_Tall", "Flower_3_Group", "Clover_1", "Mushroom_Common"]},
+	},
+	{
+		"id": "tri_espinho", "nome": "Tri-Espinho", "apelido": "O Aríete Verde", "tier": 2, "rank_minimo": 2,
+		"elemento": "natureza", "vida": 4600.0, "velocidade": 4.4, "defesa": 0.18, "limite_atordoamento": 400.0,
+		"descricao": "Investe de chifres baixos e não para. Quebre o escudo da cabeça para atordoá-lo mais fácil.",
+		"partes": [
+			{"id": "cabeca", "nome": "Escudo", "vida": 950.0, "drop": "escudo_espinho"},
+			{"id": "costas", "nome": "Dorso", "vida": 1000.0, "drop": "chifre_espinho"},
+			{"id": "cauda", "nome": "Cauda", "vida": 700.0, "drop": "cauda_espinho"},
+		],
+		"ataques": [
+			{"id": "chifrada", "nome": "Chifrada", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 4.6, "raio": 5.0, "angulo": 100.0, "preparo": 0.7, "dano": 22.0, "recuperacao": 0.9, "so_furia": false},
+			{"id": "ariete", "nome": "Aríete", "tipo": "investida", "alcance_min": 4.0, "alcance_max": 20.0, "raio": 2.6, "angulo": 0.0, "preparo": 0.9, "dano": 30.0, "recuperacao": 1.3, "so_furia": false},
+			{"id": "pisao", "nome": "Pisão", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 5.0, "raio": 5.0, "angulo": 360.0, "preparo": 1.0, "dano": 24.0, "recuperacao": 1.1, "so_furia": false},
+			{"id": "estouro", "nome": "Estouro da Manada", "tipo": "investida", "alcance_min": 0.0, "alcance_max": 22.0, "raio": 3.2, "angulo": 0.0, "preparo": 0.7, "dano": 36.0, "recuperacao": 1.0, "so_furia": true},
+		],
+		"loot": [
+			{"item": "placa_espinho", "chance": 1.0, "qtd": [3, 4]},
+			{"item": "chifre_espinho", "chance": 0.6, "qtd": [1, 2]},
+			{"item": "coracao_espinho", "chance": 0.12, "qtd": [1, 1]},
+		],
+		"moedas": [360, 480], "xp": 150,
+		"modelo": "Triceratops",
+		"visual": {"cor_corpo": "#5b6b32", "cor_detalhe": "#d9c27a", "cor_olhos": "#e8ff9a", "comprimento": 7.0,
+			"altura": 3.0, "largura": 2.0, "pernas": 1.1, "cauda_segmentos": 4, "espinhos": "placas"},
+		"bioma": {"chao": "#4f8a3a", "grama": "#4f7a30", "ceu_topo": "#b8cca8", "ceu_horizonte": "#b6c98e",
+			"neblina": "#b6c98e", "luz": "#fff4d0", "sombra": "#202c18", "raio": "#f4ffb020",
+			"tint_grama": "#e8ffd0", "tint_terra": "#f0e8d8", "tint_rocha": "#e8f0e0", "arvore": "#2f7a3a", "pedra": "#7c8a7a",
+			"arvores": ["CommonTree_1", "CommonTree_2", "CommonTree_4", "Pine_3", "Pine_1"],
+			"plantas": ["Bush_Common", "Fern_1", "Plant_1_Big", "Plant_7_Big", "Mushroom_Common"]},
+	},
+	{
 		"id": "jacare_mare", "nome": "Rex-Maré", "apelido": "O Senhor da Correnteza", "tier": 2, "rank_minimo": 3,
 		"elemento": "agua", "vida": 5200.0, "velocidade": 4.6, "defesa": 0.12, "limite_atordoamento": 420.0,
 		"descricao": "Mordidas rápidas e uma cauda que varre tudo. Na fúria, explode em ondas.",
@@ -168,6 +268,36 @@ const BEASTS := [
 			"tint_grama": "#d6f0dc", "tint_terra": "#d8dccf", "tint_rocha": "#d4e2e2", "arvore": "#2c6650", "pedra": "#56706e",
 			"arvores": ["CommonTree_1", "DeadTree_1", "Pine_5", "CommonTree_3", "Pine_2"],
 			"plantas": ["Fern_1", "Plant_1_Big", "Grass_Common_Tall", "Mushroom_Common", "Bush_Common"]},
+	},
+	{
+		"id": "tita_cinza", "nome": "Titã-Cinza", "apelido": "A Montanha que Anda", "tier": 3, "rank_minimo": 4,
+		"elemento": "fogo", "vida": 9000.0, "velocidade": 2.8, "defesa": 0.15, "limite_atordoamento": 700.0,
+		"descricao": "Gigantesco e lento. O pescoço alcança longe e a cauda varre tudo: lute colado nas patas.",
+		"partes": [
+			{"id": "cabeca", "nome": "Cabeça", "vida": 1500.0, "drop": "cranio_tita"},
+			{"id": "costas", "nome": "Dorso", "vida": 2000.0, "drop": "osso_tita"},
+			{"id": "cauda", "nome": "Cauda", "vida": 1400.0, "drop": "cauda_tita"},
+		],
+		"ataques": [
+			{"id": "pescocada", "nome": "Golpe de Pescoço", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 9.5, "raio": 10.0, "angulo": 70.0, "preparo": 1.0, "dano": 32.0, "recuperacao": 1.1, "so_furia": false},
+			{"id": "chicote", "nome": "Chicote de Cauda", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 7.5, "raio": 8.0, "angulo": 360.0, "preparo": 1.3, "dano": 30.0, "recuperacao": 1.2, "so_furia": false},
+			{"id": "patada_tita", "nome": "Pisada Sísmica", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 7.0, "raio": 6.5, "angulo": 360.0, "preparo": 1.35, "dano": 34.0, "recuperacao": 1.3, "so_furia": false},
+			{"id": "erupcao", "nome": "Erupção", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 12.0, "raio": 11.0, "angulo": 360.0, "preparo": 1.8, "dano": 44.0, "recuperacao": 1.6, "so_furia": true},
+		],
+		"loot": [
+			{"item": "escama_tita", "chance": 1.0, "qtd": [4, 6]},
+			{"item": "osso_tita", "chance": 0.7, "qtd": [1, 3]},
+			{"item": "coracao_tita", "chance": 0.15, "qtd": [1, 1]},
+		],
+		"moedas": [700, 950], "xp": 300,
+		"modelo": "Apatosaurus",
+		"visual": {"cor_corpo": "#4d4442", "cor_detalhe": "#e0642a", "cor_olhos": "#ffb060", "comprimento": 16.0,
+			"altura": 3.7, "largura": 2.2, "pernas": 1.8, "cauda_segmentos": 6, "espinhos": "cristas"},
+		"bioma": {"chao": "#6a5040", "grama": "#7a6440", "ceu_topo": "#8a6a70", "ceu_horizonte": "#c99a7a",
+			"neblina": "#c99a7a", "luz": "#ffd2a8", "sombra": "#3a241c", "raio": "#ffb07020",
+			"tint_grama": "#c8a070", "tint_terra": "#b89888", "tint_rocha": "#a08880", "arvore": "#5a4a3a", "pedra": "#6a5a50",
+			"arvores": ["DeadTree_1", "DeadTree_3", "TwistedTree_1"],
+			"plantas": ["Grass_Wispy_Tall", "Bush_Common", "Plant_7_Big"]},
 	},
 ]
 

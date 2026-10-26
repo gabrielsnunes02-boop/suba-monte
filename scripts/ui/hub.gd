@@ -337,8 +337,10 @@ func _render_home() -> void:
 func _render_hunts() -> void:
 	_content.add_child(_label("Escolha sua presa", 30))
 	var weapon: Dictionary = GameData.GEAR[profile.equipado.arma]
-	var grid := HBoxContainer.new()
-	grid.add_theme_constant_override("separation", 14)
+	var grid := GridContainer.new()
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 14)
+	grid.add_theme_constant_override("v_separation", 14)
 	_content.add_child(grid)
 	for b in GameData.BEASTS:
 		var locked: bool = profile.rank < b.rank_minimo
