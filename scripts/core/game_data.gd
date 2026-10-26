@@ -18,20 +18,20 @@ const MATERIALS := {
 
 	"couro_brasa": {"nome": "Couro de Brasa", "raridade": "comum", "descricao": "Ainda quente ao toque."},
 	"garra_brasa": {"nome": "Garra de Brasa", "raridade": "incomum", "descricao": "Curva e afiada."},
-	"presa_brasa": {"nome": "Presa de Brasa", "raridade": "incomum", "descricao": "Quebre a cabeça da Onça-Brasa."},
-	"cauda_brasa": {"nome": "Cauda de Brasa", "raridade": "incomum", "descricao": "Corte a cauda da Onça-Brasa."},
+	"presa_brasa": {"nome": "Presa de Brasa", "raridade": "incomum", "descricao": "Quebre a cabeça do Raptor-Brasa."},
+	"cauda_brasa": {"nome": "Cauda de Brasa", "raridade": "incomum", "descricao": "Corte a cauda do Raptor-Brasa."},
 	"coracao_brasa": {"nome": "Coração de Brasa", "raridade": "raro", "descricao": "Pulsa como carvão vivo."},
 
 	"placa_musgo": {"nome": "Placa Musgosa", "raridade": "comum", "descricao": "Casco coberto de musgo."},
 	"garra_musgo": {"nome": "Garra Escavadora", "raridade": "incomum", "descricao": "Feita para cavar rocha."},
-	"focinho_musgo": {"nome": "Focinho Blindado", "raridade": "incomum", "descricao": "Quebre a cabeça do Tatu-Musgo."},
-	"cauda_musgo": {"nome": "Cauda de Clava", "raridade": "incomum", "descricao": "Corte a cauda do Tatu-Musgo."},
+	"focinho_musgo": {"nome": "Focinho Blindado", "raridade": "incomum", "descricao": "Quebre a cabeça do Estego-Musgo."},
+	"cauda_musgo": {"nome": "Cauda de Clava", "raridade": "incomum", "descricao": "Corte a cauda do Estego-Musgo."},
 	"coracao_musgo": {"nome": "Coração Verdejante", "raridade": "raro", "descricao": "Brotos nascem ao redor dele."},
 
 	"escama_mare": {"nome": "Escama de Maré", "raridade": "comum", "descricao": "Úmida, nunca seca."},
 	"dente_mare": {"nome": "Dente de Maré", "raridade": "incomum", "descricao": "Serrilhado como coral."},
-	"mandibula_mare": {"nome": "Mandíbula Abissal", "raridade": "incomum", "descricao": "Quebre a cabeça do Jacaré-Maré."},
-	"cauda_mare": {"nome": "Cauda de Correnteza", "raridade": "incomum", "descricao": "Corte a cauda do Jacaré-Maré."},
+	"mandibula_mare": {"nome": "Mandíbula Abissal", "raridade": "incomum", "descricao": "Quebre a cabeça do Rex-Maré."},
+	"cauda_mare": {"nome": "Cauda de Correnteza", "raridade": "incomum", "descricao": "Corte a cauda do Rex-Maré."},
 	"coracao_mare": {"nome": "Coração de Maré", "raridade": "raro", "descricao": "Ouve-se o mar dentro dele."},
 }
 
@@ -81,7 +81,7 @@ const MAX_UPGRADE := 10
 ## tipo: "setor" (ângulo 360 = giro), "investida" ou "circulo".
 const BEASTS := [
 	{
-		"id": "onca_brasa", "nome": "Onça-Brasa", "apelido": "A Fera das Cinzas", "tier": 1, "rank_minimo": 1,
+		"id": "onca_brasa", "nome": "Raptor-Brasa", "apelido": "A Fera das Cinzas", "tier": 1, "rank_minimo": 1,
 		"elemento": "fogo", "vida": 2600.0, "velocidade": 5.2, "defesa": 0.05, "limite_atordoamento": 260.0,
 		"descricao": "Rápida e agressiva. Avança em linha reta: esquive para o lado e puna a recuperação.",
 		"partes": [
@@ -100,8 +100,9 @@ const BEASTS := [
 			{"item": "coracao_brasa", "chance": 0.12, "qtd": [1, 1]},
 		],
 		"moedas": [180, 260], "xp": 80,
-		"visual": {"cor_corpo": "#d9712c", "cor_detalhe": "#3a1d10", "cor_olhos": "#ffe066", "comprimento": 3.6,
-			"altura": 1.5, "largura": 1.4, "pernas": 1.3, "cauda_segmentos": 5, "espinhos": "chamas"},
+		"modelo": "Velociraptor",
+		"visual": {"cor_corpo": "#9a3a14", "cor_detalhe": "#f0b048", "cor_olhos": "#ffe066", "comprimento": 5.0,
+			"altura": 2.4, "largura": 1.2, "pernas": 1.1, "cauda_segmentos": 5, "espinhos": "chamas"},
 		"bioma": {"chao": "#a8843c", "grama": "#8f7f3c", "ceu_topo": "#9fb6c8", "ceu_horizonte": "#f4c48a",
 			"neblina": "#e3cf9e", "luz": "#fff0cf", "sombra": "#4a3f2e", "raio": "#ffe2a01c",
 			"tint_grama": "#ffd98f", "tint_terra": "#ffeedd", "tint_rocha": "#ffe6c8", "arvore": "#9a7b2a", "pedra": "#8b6a4f",
@@ -109,9 +110,9 @@ const BEASTS := [
 			"plantas": ["Bush_Common", "Grass_Wispy_Tall", "Plant_7_Big", "Grass_Common_Tall"]},
 	},
 	{
-		"id": "tatu_musgo", "nome": "Tatu-Musgo", "apelido": "O Muro Vivo", "tier": 1, "rank_minimo": 1,
+		"id": "tatu_musgo", "nome": "Estego-Musgo", "apelido": "O Muro Vivo", "tier": 1, "rank_minimo": 1,
 		"elemento": "natureza", "vida": 3400.0, "velocidade": 3.6, "defesa": 0.15, "limite_atordoamento": 320.0,
-		"descricao": "Lento e blindado. Rola sobre você e gira a cauda em clava. Fique atrás dele.",
+		"descricao": "Lento e blindado. Avança com as placas e gira a cauda de espinhos. Fique atrás dele.",
 		"partes": [
 			{"id": "cabeca", "nome": "Cabeça", "vida": 600.0, "drop": "focinho_musgo"},
 			{"id": "costas", "nome": "Casco", "vida": 900.0, "drop": "garra_musgo"},
@@ -119,7 +120,7 @@ const BEASTS := [
 		],
 		"ataques": [
 			{"id": "focinhada", "nome": "Focinhada", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 4.0, "raio": 4.2, "angulo": 80.0, "preparo": 0.75, "dano": 18.0, "recuperacao": 0.9, "so_furia": false},
-			{"id": "rolamento", "nome": "Rolamento", "tipo": "investida", "alcance_min": 4.0, "alcance_max": 16.0, "raio": 2.4, "angulo": 0.0, "preparo": 1.0, "dano": 24.0, "recuperacao": 1.4, "so_furia": false},
+			{"id": "rolamento", "nome": "Avanço de Placas", "tipo": "investida", "alcance_min": 4.0, "alcance_max": 16.0, "raio": 2.4, "angulo": 0.0, "preparo": 1.0, "dano": 24.0, "recuperacao": 1.4, "so_furia": false},
 			{"id": "giro_cauda", "nome": "Giro da Clava", "tipo": "setor", "alcance_min": 0.0, "alcance_max": 5.0, "raio": 5.4, "angulo": 360.0, "preparo": 0.95, "dano": 20.0, "recuperacao": 1.0, "so_furia": false},
 			{"id": "terremoto", "nome": "Terremoto", "tipo": "circulo", "alcance_min": 0.0, "alcance_max": 8.0, "raio": 7.5, "angulo": 360.0, "preparo": 1.4, "dano": 30.0, "recuperacao": 1.5, "so_furia": true},
 		],
@@ -129,8 +130,9 @@ const BEASTS := [
 			{"item": "coracao_musgo", "chance": 0.12, "qtd": [1, 1]},
 		],
 		"moedas": [200, 280], "xp": 90,
-		"visual": {"cor_corpo": "#6f8f3a", "cor_detalhe": "#3d4a22", "cor_olhos": "#c8ff6a", "comprimento": 3.4,
-			"altura": 1.8, "largura": 2.0, "pernas": 0.9, "cauda_segmentos": 4, "espinhos": "placas"},
+		"modelo": "Stegosaurus",
+		"visual": {"cor_corpo": "#4c5f2c", "cor_detalhe": "#b7c45a", "cor_olhos": "#c8ff6a", "comprimento": 6.5,
+			"altura": 3.0, "largura": 1.8, "pernas": 1.0, "cauda_segmentos": 4, "espinhos": "placas"},
 		"bioma": {"chao": "#4f8a3a", "grama": "#5f8a35", "ceu_topo": "#c8dcc0", "ceu_horizonte": "#bfe3ef",
 			"neblina": "#c3d3a0", "luz": "#fff6d8", "sombra": "#28331f", "raio": "#f0ffc01a",
 			"tint_grama": "#ffffff", "tint_terra": "#ffffff", "tint_rocha": "#ffffff", "arvore": "#2f7a3a", "pedra": "#7c8a7a",
@@ -138,7 +140,7 @@ const BEASTS := [
 			"plantas": ["Bush_Common_Flowers", "Fern_1", "Flower_3_Group", "Flower_4_Group", "Mushroom_Common", "Clover_1"]},
 	},
 	{
-		"id": "jacare_mare", "nome": "Jacaré-Maré", "apelido": "O Senhor da Correnteza", "tier": 2, "rank_minimo": 3,
+		"id": "jacare_mare", "nome": "Rex-Maré", "apelido": "O Senhor da Correnteza", "tier": 2, "rank_minimo": 3,
 		"elemento": "agua", "vida": 5200.0, "velocidade": 4.6, "defesa": 0.12, "limite_atordoamento": 420.0,
 		"descricao": "Mordidas rápidas e uma cauda que varre tudo. Na fúria, explode em ondas.",
 		"partes": [
@@ -158,8 +160,9 @@ const BEASTS := [
 			{"item": "coracao_mare", "chance": 0.12, "qtd": [1, 1]},
 		],
 		"moedas": [380, 500], "xp": 160,
-		"visual": {"cor_corpo": "#2f7f8f", "cor_detalhe": "#163f4a", "cor_olhos": "#9ff3ff", "comprimento": 5.2,
-			"altura": 1.1, "largura": 1.6, "pernas": 0.7, "cauda_segmentos": 7, "espinhos": "cristas"},
+		"modelo": "Trex",
+		"visual": {"cor_corpo": "#2f6a78", "cor_detalhe": "#bcd2c0", "cor_olhos": "#9ff3ff", "comprimento": 8.0,
+			"altura": 4.0, "largura": 2.2, "pernas": 1.8, "cauda_segmentos": 7, "espinhos": "cristas"},
 		"bioma": {"chao": "#3f7a5e", "grama": "#4f8456", "ceu_topo": "#a9c6cc", "ceu_horizonte": "#a9d2dc",
 			"neblina": "#a8c8bc", "luz": "#effaf0", "sombra": "#1f302c", "raio": "#d8fff018",
 			"tint_grama": "#d6f0dc", "tint_terra": "#d8dccf", "tint_rocha": "#d4e2e2", "arvore": "#2c6650", "pedra": "#56706e",

@@ -39,6 +39,9 @@ var _dead_notified := false
 var _roar_is_fury := false
 var _severed_tail: Node3D
 var _tail_vy := 0.0
+## Modelo animado (quando a fera tem `modelo`); senão o corpo é procedural.
+var _model: BeastModel
+var _anim_state := -1
 
 
 func setup(h: Hunt, d: Dictionary) -> void:
@@ -52,7 +55,15 @@ func setup(h: Hunt, d: Dictionary) -> void:
 	half_len = d.visual.comprimento * 0.4
 	for p in d.partes:
 		parts[p.id] = {"def": p, "dano": 0.0, "ferida": false, "quebrada": false}
-	_m = Models.build_beast(d, self)
+	if d.has("modelo"):
+		var pose := Node3D.new()
+		add_child(pose)
+		_model = BeastModel.new()
+		pose.add_child(_model)
+		_model.setup(d)
+		_m = {"pose": pose, "head": _model.head, "anchors": _model.anchors}
+	else:
+		_m = Models.build_beast(d, self)
 
 
 func alive() -> bool:
@@ -357,7 +368,8 @@ func apply_damage(part_id: String, dmg: float, stagger_amt: float) -> void:
 
 	if not fury and hp <= max_hp * FURY_HP and state != State.ATORDOADO:
 		fury = true
-		_m.eyes_mat.albedo_color = Color("#ff2a2a")
+		if _model == null:
+			_m.eyes_mat.albedo_color = Color("#ff2a2a")
 		_start_roar(true)
 
 
@@ -368,7 +380,14 @@ func _break_part(id: String, at: Vector3) -> void:
 	hunt.shake(0.45)
 	hunt.hitstop(0.12)
 	hunt.on_part_broken(part.def.drop)
-	if id == "cauda":
+	if id == "cauda" and _model:
+		_severed_tail = _model.cut_tail(def.visual)
+		hunt.world.add_child(_severed_tail)
+		_tail_vy = 4.0
+		hunt.banner("CAUDA CORTADA!", Color("#6ee7a0"))
+	elif _model:
+		hunt.banner("%s QUEBRADA!" % part.def.nome.to_upper(), Color("#6ee7a0"))
+	elif id == "cauda":
 		var tail: Node3D = _m.tail_root
 		var xf := tail.global_transform
 		tail.get_parent().remove_child(tail)
@@ -387,6 +406,9 @@ func _break_part(id: String, at: Vector3) -> void:
 
 
 func _set_glow(energy: float, color := Color("#ff2020")) -> void:
+	if _model:
+		_model.set_glow(color, energy * 0.45)
+		return
 	for m in _m.body_mats:
 		m.emission = color
 		m.emission_energy_multiplier = energy
@@ -403,6 +425,10 @@ func _animate(dt: float, moving: float) -> void:
 			_set_glow(_flash * 0.7, Color.WHITE)
 	elif fury and state != State.PREPARAR:
 		_set_glow(0.3 + 0.2 * sin(_t * 6.0), Color("#ff3010"))
+
+	if _model:
+		_animate_model(dt, moving)
+		return
 
 	var leg_swing := sin(_walk_phase) * minf(0.7, 0.35 + moving * 0.2) if moving > 0.05 else 0.0
 	var legs: Array = _m.legs
@@ -468,8 +494,79 @@ func _animate(dt: float, moving: float) -> void:
 	pose.rotation = Vector3(pose_x, spin, pose_z)
 	_m.head.rotation.x = head_x
 
+	_update_severed_tail(dt)
+
+
+func _update_severed_tail(dt: float) -> void:
 	if _severed_tail and _severed_tail.position.y > 0.3:
 		_tail_vy -= 18.0 * dt
 		_severed_tail.position.y = maxf(0.3, _severed_tail.position.y + _tail_vy * dt)
 		_severed_tail.rotation.y += 3.0 * dt
 		_severed_tail.rotation.z += 1.5 * dt
+
+
+## Escolhe a animação do modelo pelo estado; inclinações e giros continuam no nó `pose`.
+func _animate_model(dt: float, moving: float) -> void:
+	var entered := _anim_state != state
+	_anim_state = state
+	var p := 0.0
+	if not _attack.is_empty():
+		p = minf(1.0, _t / (_attack.preparo * (0.8 if fury else 1.0)))
+	var tipo: String = _attack.get("tipo", "")
+	var is_spin: bool = tipo == "setor" and _attack.get("angulo", 0.0) >= 360.0
+	var pose_y := 0.0
+	var pose_x := 0.0
+	var pose_z := 0.0
+	var spin := 0.0
+	match state:
+		State.OCIOSO, State.PERSEGUIR:
+			if moving > 0.75:
+				_model.play("Run", clampf(moving, 0.8, 1.6))
+			elif moving > 0.05:
+				_model.play("Walk", clampf(moving * 1.6, 0.6, 1.4))
+			else:
+				_model.play("Idle")
+		State.PREPARAR:
+			# Segura o começo do golpe enquanto o aviso enche no chão.
+			if tipo == "investida":
+				_model.play("Idle", 0.5)
+				pose_y = -0.25 * p
+				pose_x = 0.12 * p
+			elif tipo == "circulo":
+				_model.seek_fraction("Jump", p * 0.3)
+			elif is_spin:
+				_model.play("Idle", 0.5)
+				spin = -0.6 * p
+			else:
+				_model.seek_fraction("Attack", p * 0.4)
+		State.ATACAR:
+			if tipo == "investida":
+				_model.play("Run", 1.7)
+			elif tipo == "circulo":
+				if entered:
+					_model.play("Jump", 1.6)
+			elif is_spin:
+				spin = -0.6 + (TAU + 0.6) * minf(1.0, _t / 0.25)
+			elif entered:
+				_model.play("Attack", 1.8)
+		State.RECUPERAR:
+			if _model.current() == "Run" or _model.current() == "Idle":
+				_model.play("Idle", 0.8)
+			elif not _model.player.is_playing() or _model.player.speed_scale == 0.0:
+				_model.play("Idle", 0.8)
+		State.RUGIR:
+			if entered:
+				_model.play("Attack", 0.6, 0.2, true)
+			pose_x = -0.15 * minf(1.0, _t * 4.0)
+		State.ATORDOADO:
+			_model.play("Idle", 0.3)
+			var fade := (STUN_TIME - _t) / 0.3 if _t > STUN_TIME - 0.3 else 1.0
+			pose_z = minf(1.0, _t * 4.0) * 1.25 * fade
+		State.MORTO:
+			if entered:
+				_model.play("Death", 1.0, 0.1, true)
+	_model.tick(dt)
+	var pose: Node3D = _m.pose
+	pose.position.y = pose_y + (sin(pose_z) * def.visual.pernas * 0.4 if pose_z != 0.0 else 0.0)
+	pose.rotation = Vector3(pose_x, spin, pose_z)
+	_update_severed_tail(dt)

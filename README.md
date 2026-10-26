@@ -13,7 +13,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Mundo | Vegetação do **Stylized Nature MegaKit** (Quaternius): árvores, pinheiros, árvores retorcidas e secas, arbustos, flores, samambaias, cogumelos e pedras, diferente em cada ilha e desenhada com MultiMesh (leve no celular) |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
 | Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
-| Feras | **Onça-Brasa** (Fogo), **Tatu-Musgo** (Natureza), **Jacaré-Maré** (Água, Tier 2) |
+| Feras | **Raptor-Brasa** (Fogo), **Estego-Musgo** (Natureza), **Rex-Maré** (Água, Tier 2): modelos animados da Quaternius (correr, golpe, salto, morte), recoloridos por fera com textura de couro pintada |
 | Caçada | Ataques **avisados no chão** (área vermelha que enche até o golpe), **fúria** com 40% de vida, **atordoamento** por golpes na cabeça, partes **feridas** (+30% de dano) e **quebráveis**, **cauda cortável**, 3 desmaios permitidos |
 | Elementos | Fogo ► Natureza ► Água ► Fogo (×1,5 / ×0,75 de dano; armadura resiste ao próprio elemento) |
 | Coleta e forja | Minério e fibra na ilha; fabricação garantida; upgrade +0 a +10 (material raro a partir do +5) |
