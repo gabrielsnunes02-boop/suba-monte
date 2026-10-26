@@ -32,6 +32,10 @@ var _slow_scale := 1.0
 var _render_scale := 1.0
 var _next_fps_check := 0
 const MIN_RENDER_SCALE := 0.45
+## Luz de preenchimento vinda da câmera, só no caçador e na fera (camada 2): com o sol
+## de frente eles viravam silhuetas pretas.
+const FILL_LAYER := 2
+var _fill := DirectionalLight3D.new()
 
 
 func setup(profile: Dictionary, fera_id: String) -> void:
@@ -65,6 +69,15 @@ func _ready() -> void:
 	if not preset.sombras:
 		player.add_child(Models.blob_shadow(0.7, 0.7))
 		beast.add_child(Models.blob_shadow(_beast_def.visual.largura * 0.75, _beast_def.visual.comprimento * 0.6))
+
+	_fill.light_energy = 0.55
+	_fill.light_color = Color("#fff4e0")
+	_fill.light_cull_mask = FILL_LAYER
+	_fill.shadow_enabled = false
+	world.add_child(_fill)
+	for n in [player, beast]:
+		for mi: VisualInstance3D in n.find_children("*", "MeshInstance3D", true, false):
+			mi.layers |= FILL_LAYER
 
 	camera_rig.target = player
 	camera_rig.lock_target = beast
@@ -120,6 +133,8 @@ func _process(dt: float) -> void:
 	player.tick(dt)
 	beast.tick(dt)
 	camera_rig.tick(dt)
+	# Aponta para onde a câmera olha, um pouco de cima.
+	_fill.global_basis = camera_rig.camera.global_basis * Basis(Vector3.RIGHT, -0.35)
 	_update_nodes()
 	hud.refresh(dt, player, beast, _faints, _elapsed)
 	touch.set_potions(player.potions)

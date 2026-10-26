@@ -20,7 +20,7 @@ const UAL := preload("res://assets/animacoes/quaternius/UAL_Standard.glb")
 ## Papel → clipe da UAL.
 const ROLES := {
 	"idle": "Sword_Idle", "run": "Jog_Fwd",
-	"light0": "Sword_Attack", "light1": "Sword_Attack", "light2": "Sword_Attack",
+	"light0": "Sword_Attack", "light1": "Punch_Cross", "light2": "Sword_Attack",
 	"heavy": "Sword_Attack", "dodge": "Roll", "drink": "Interact", "hit": "Hit_Chest", "death": "Death01",
 }
 ## Clipes que a UAL não marca como repetição, mas que precisam repetir.

@@ -343,6 +343,9 @@ func _enter_animation(s: State) -> void:
 ## Clipes contínuos (parado/correndo) e direção do corpo, a cada quadro.
 func _animate(walking: bool, mag: float) -> void:
 	_model.rotation.y = facing
+	# Terceiro golpe do combo: corte girando (uma volta inteira até o momento do acerto).
+	if state == State.ATAQUE and _combo == 2:
+		_model.rotation.y += TAU * smoothstep(0.0, LIGHT[2].hit_at * 1.3, _t)
 	if state == State.LIVRE:
 		if walking:
 			_model.play("run", 0.0, false, 0.15, clampf(mag * 1.15, 0.6, 1.25))

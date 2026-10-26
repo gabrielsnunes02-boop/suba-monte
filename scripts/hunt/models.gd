@@ -281,8 +281,9 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 
 
 ## Malha de uma peça do kit Stylized Nature (Quaternius, CC0), com a transformação do arquivo aplicada.
-static func kit_mesh(model: String) -> Mesh:
-	if not _kit_meshes.has(model):
+static func kit_mesh(model: String, detail := 1.0) -> Mesh:
+	var key := "%s|%s|%s" % [model, detail, Settings.preset().simples]
+	if not _kit_meshes.has(key):
 		var scene: Node3D = load(KIT_DIR % model).instantiate()
 		var mi: MeshInstance3D = scene.find_children("*", "MeshInstance3D", true, false)[0]
 		var mesh: Mesh = mi.mesh
@@ -305,23 +306,47 @@ static func kit_mesh(model: String) -> Mesh:
 				baked.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 				baked.surface_set_material(s, mesh.surface_get_material(s))
 			mesh = baked
+		if detail < 1.0:
+			mesh = _decimated(mesh, detail)
 		if Settings.preset().simples and mesh is ArrayMesh:
 			for s in mesh.get_surface_count():
 				(mesh as ArrayMesh).surface_set_material(s, simplified(mesh.surface_get_material(s)))
-		_kit_meshes[model] = mesh
+		_kit_meshes[key] = mesh
 		scene.free()
-	return _kit_meshes[model]
+	return _kit_meshes[key]
+
+
+## Versão simplificada de uma malha: gera níveis de detalhe (como o importador da Godot faz)
+## e fica, em cada superfície, com o nível mais leve que ainda tem `ratio` dos triângulos.
+## Nas árvores do kit isso corta os galhos finos da casca, que são a maior parte do peso.
+static func _decimated(mesh: Mesh, ratio: float) -> ArrayMesh:
+	var out := ArrayMesh.new()
+	for s in mesh.get_surface_count():
+		var arr := mesh.surface_get_arrays(s)
+		var base: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+		var im := ImporterMesh.new()
+		im.add_surface(Mesh.PRIMITIVE_TRIANGLES, arr)
+		im.generate_lods(60.0, 0.0, [])
+		var best := base
+		for l in im.get_surface_lod_count(0):
+			var idx := im.get_surface_lod_indices(0, l)
+			if idx.size() >= base.size() * ratio and idx.size() < best.size():
+				best = idx
+		arr[Mesh.ARRAY_INDEX] = best
+		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		out.surface_set_material(s, mesh.surface_get_material(s))
+	return out
 
 
 ## Espalha várias cópias de cada peça com um MultiMesh por peça (uma chamada de desenho cada).
-static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool) -> void:
+static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool, detail := {}) -> void:
 	for model in placements:
 		var xforms: Array = placements[model]
 		if xforms.is_empty():
 			continue
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = kit_mesh(model)
+		mm.mesh = kit_mesh(model, detail.get(model, 1.0))
 		mm.instance_count = xforms.size()
 		for k in xforms.size():
 			mm.set_instance_transform(k, xforms[k])
@@ -353,13 +378,17 @@ static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGe
 				return p
 		return Vector3(0, 0, -r_max)
 
-	# Árvores grandes na borda e na encosta até os paredões (o centro fica livre para a luta).
+	# Árvores enormes, como nas florestas do MH: na borda da arena e na encosta até os
+	# paredões (o centro fica livre para a luta). Galhos simplificados conforme a qualidade.
 	var tree_models: Array = biome.arvores
+	var detail := {}
 	for i in int(preset.arvores):
-		var p: Vector3 = ring.call(ARENA_RADIUS - 3.0, Terrain.CLIFF_RADIUS - 3.0)
-		var s := rng.randf_range(1.1, 1.7)
-		add.call(tree_models[i % tree_models.size()], p, s)
-		trees.append(Vector3(p.x, 2.5 * s, p.z))
+		var p: Vector3 = ring.call(ARENA_RADIUS + 0.5, Terrain.CLIFF_RADIUS - 3.0)
+		var s := rng.randf_range(2.0, 3.2)
+		var model: String = tree_models[i % tree_models.size()]
+		add.call(model, p, s)
+		detail[model] = preset.galhos
+		trees.append(Vector3(p.x, 1.8 * s, p.z))
 	# Pedras médias, arbustos e plantas num anel intermediário.
 	for i in 8:
 		add.call(ROCKS[i % ROCKS.size()], ring.call(17.0, ARENA_RADIUS + 6.0), rng.randf_range(0.7, 1.5))
@@ -371,7 +400,7 @@ static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGe
 	for i in details / 2:
 		add.call(PEBBLES[i % PEBBLES.size()], ring.call(3.0, ARENA_RADIUS), rng.randf_range(0.8, 2.0))
 		add.call("Grass_Common_Short", ring.call(6.0, ARENA_RADIUS), rng.randf_range(0.6, 1.1))
-	_scatter(parent, placements, preset.sombras)
+	_scatter(parent, placements, preset.sombras, detail)
 	return trees
 
 

@@ -10,9 +10,9 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Sistema | O que tem |
 |---|---|
 | Personagem | Caçador modular com esqueleto padrão do Unreal: **Ranger** (capuz, ombreira, botas) ou **Camponês**, escolhidos no acampamento. Animações da **Universal Animation Library** da Quaternius: guarda com espada, corrida, golpe, golpe carregado, rolamento, poção, dano e desmaio |
-| Mundo | Vegetação do **Stylized Nature MegaKit** (Quaternius): árvores, pinheiros, árvores retorcidas e secas, arbustos, flores, samambaias, cogumelos e pedras, diferente em cada ilha e desenhada com MultiMesh (leve no celular) |
+| Mundo | Vegetação do **Stylized Nature MegaKit** (Quaternius): árvores enormes na borda do vale (galhos simplificados na hora de montar a arena, conforme a qualidade), pinheiros, árvores secas, arbustos, flores, samambaias, cogumelos e pedras, diferente em cada região e desenhada com MultiMesh (leve no celular) |
 | Câmera | Terceira pessoa atrás do caçador (estilo Dauntless), **trava de mira na fera** (botão MIRA), giro arrastando o dedo na metade direita |
-| Combate | Combo leve de 3 golpes, ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
+| Combate | Combo leve de 3 golpes (corte, cruzado e corte girando), ataque carregado (segurar), esquiva com invencibilidade e stamina, **esquiva perfeita** (câmera lenta), poções, mira assistida, hit-stop e tremor de câmera |
 | Feras | **Raptor-Brasa** (Fogo), **Estego-Musgo** (Natureza), **Rex-Maré** (Água, Tier 2): modelos animados da Quaternius (correr, golpe, salto, morte), recoloridos por fera com textura de couro pintada |
 | Caçada | Ataques **avisados no chão** (área vermelha que enche até o golpe), **fúria** com 40% de vida, **atordoamento** por golpes na cabeça, partes **feridas** (+30% de dano) e **quebráveis**, **cauda cortável**, 3 desmaios permitidos |
 | Elementos | Fogo ► Natureza ► Água ► Fogo (×1,5 / ×0,75 de dano; armadura resiste ao próprio elemento) |
@@ -23,7 +23,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 
 As animações passam de um esqueleto para outro pelo **redirecionamento humanoide** da Godot: cada modelo tem um `BoneMap` (`*_bonemap.tres`) ligado no seu arquivo `.import`. Qualquer personagem humano novo (Mixamo, Unreal, Rigify) pode usar as mesmas animações criando um `BoneMap` para ele.
 
-As feras ainda são geradas por código; trocar por modelos de artista é substituir as funções em `scripts/hunt/models.gd`. As texturas do terreno (`assets/mundo/terreno/`) são geradas por `tools/gerar_texturas.py` e podem ser trocadas por texturas pintadas à mão com o mesmo nome (o canal alfa de `grama.png` e `terra.png` é a "altura" usada na borda entre as duas).
+Cada fera usa um modelo animado (`modelo` em `game_data.gd`, arquivo em `assets/feras/quaternius/`), recolorido pelo `BeastModel` (`scripts/hunt/beast_model.gd`); qualquer glTF com os mesmos nomes de ossos (Head, Torso, Tail1-5) e animações (Idle, Walk, Run, Attack, Jump, Death) serve. As texturas do terreno (`assets/mundo/terreno/`) são geradas por `tools/gerar_texturas.py` e podem ser trocadas por texturas pintadas à mão com o mesmo nome (o canal alfa de `grama.png` e `terra.png` é a "altura" usada na borda entre as duas).
 
 No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3D, sombras em tempo real, quantidade de vegetação, antisserrilhado, materiais simples e luz por vértice no Baixo, limite de 30 FPS no Baixo e no Médio). Em GPUs de entrada (PowerVR GE, Mali-G52, Adreno 50x…) o jogo já começa em Baixo, e durante a caçada a **resolução 3D se ajusta sozinha** quando o FPS cai (o canto da tela mostra FPS e a resolução atual).
 
@@ -32,6 +32,7 @@ No acampamento há a opção **Gráficos: Baixo / Médio / Alto** (resolução 3
 - Animações do Camponês: [Universal Animation Library](https://quaternius.com), de Quaternius — licença CC0 (`assets/animacoes/quaternius/LICENSE.txt`).
 - Modelos do Ranger e do Camponês (`assets/personagens/humano/`): enviados pelo autor do projeto; confirme a licença de uso antes de publicar o jogo.
 - Vegetação e pedras: [Stylized Nature MegaKit](https://quaternius.com), de Quaternius — licença CC0 (`assets/mundo/natureza/LICENSE.txt`).
+- Feras: [Animated LowPoly Dinosaurs](https://quaternius.com), de Quaternius — licença CC0 (`assets/feras/quaternius/LICENSE.txt`).
 - Espada: [KayKit Character Pack: Adventurers](https://kaylousberg.itch.io/kaykit-adventurers), de Kay Lousberg — licença CC0 (`assets/armas/kaykit/LICENSE.txt`).
 
 ## Controles
@@ -90,6 +91,7 @@ scripts/
     camera_rig.gd          câmera em terceira pessoa com trava de mira
     models.gd              modelos procedurais, cenário, grama, avisos no chão
     terrain.gd             vale com terreno pintado, paredões, luz assada e raios de sol
+    beast_model.gd         modelo animado da fera (tamanho, cores, animações, corte da cauda)
     fx.gd                  partículas e números de dano
   ui/
     hub.gd                 acampamento (caçar, forja, equipamento, inventário, resultado)

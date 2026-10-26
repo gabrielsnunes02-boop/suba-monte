@@ -166,7 +166,7 @@ const BEASTS := [
 		"bioma": {"chao": "#3f7a5e", "grama": "#4f8456", "ceu_topo": "#a9c6cc", "ceu_horizonte": "#a9d2dc",
 			"neblina": "#a8c8bc", "luz": "#effaf0", "sombra": "#1f302c", "raio": "#d8fff018",
 			"tint_grama": "#d6f0dc", "tint_terra": "#d8dccf", "tint_rocha": "#d4e2e2", "arvore": "#2c6650", "pedra": "#56706e",
-			"arvores": ["TwistedTree_3", "DeadTree_1", "Pine_5", "CommonTree_3", "Pine_2"],
+			"arvores": ["CommonTree_1", "DeadTree_1", "Pine_5", "CommonTree_3", "Pine_2"],
 			"plantas": ["Fern_1", "Plant_1_Big", "Grass_Common_Tall", "Mushroom_Common", "Bush_Common"]},
 	},
 ]
