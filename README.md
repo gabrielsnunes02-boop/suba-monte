@@ -18,6 +18,7 @@ Você caça feras, quebra suas partes, leva os materiais para a forja, fabrica e
 | Elementos | Fogo ► Natureza ► Água ► Fogo (×1,5 / ×0,75 de dano; armadura resiste ao próprio elemento) |
 | Coleta e forja | Minério e fibra na ilha; fabricação garantida; upgrade +0 a +10 (material raro a partir do +5) |
 | Builds | Perks: Quebra-Ossos, Caçador Paciente, Esquiva Afiada, Último Fôlego, Pele Grossa, Fôlego Longo |
+| Menus | No estilo do Dauntless: menu principal com botões azul-aço e ícones redondos, a fera mais forte liberada girando em 3D ao fundo; escolha da caçada com lista de ilhas (tier em estrelas), mapa 3D de ilhas flutuantes e painel com desafio, partes, materiais e INICIAR; tela de Opções (gráficos, visual, progresso) |
 | Progressão | Rank de caçador (libera feras), bestiário com abates e recorde, progresso salvo no aparelho (offline) |
 | Visual | Vale fechado por paredões de rocha, no estilo dos jogos de PSP: texturas pintadas de grama, terra e rocha, trilha de terra, sombras das árvores e luz "assadas" no terreno (sem custo por quadro), neblina colorida por região e raios de sol |
 
@@ -96,6 +97,9 @@ scripts/
   ui/
     hub.gd                 acampamento (caçar, forja, equipamento, inventário, resultado)
     hud.gd                 HUD da caçada e pausa
+    ui_style.gd            visual azul-aço dos menus (texturas geradas por código)
+    menu_scene.gd          cena 3D dos menus (fera em destaque, mapa de ilhas)
+    menu_icon.gd           ícones redondos desenhados por código
     touch_controls.gd      joystick, câmera e botões com multitoque
 tests/run_tests.gd       testes das regras
 tools/gerar_texturas.py  gera as texturas pintadas do terreno

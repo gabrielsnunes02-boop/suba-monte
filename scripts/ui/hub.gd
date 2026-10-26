@@ -5,15 +5,16 @@ extends Control
 signal hunt_requested(fera_id: String)
 signal profile_changed(profile: Dictionary)
 
-const C_BG := Color("#14121c")
-const C_CARD := Color("#26223a")
-const C_LINE := Color("#3a3454")
-const C_TEXT := Color("#f1ecff")
-const C_MUTED := Color("#a69fc0")
-const C_ACCENT := Color("#ff8a3d")
-const C_GOLD := Color("#ffd166")
-const C_GOOD := Color("#6ee7a0")
-const C_BAD := Color("#ff6b6b")
+const C_BG := UiStyle.C_BG_BOTTOM
+const C_TEXT := UiStyle.C_TEXT
+const C_MUTED := UiStyle.C_MUTED
+const C_ACCENT := UiStyle.C_GLOW
+const C_GOLD := UiStyle.C_GOLD
+const C_GOOD := UiStyle.C_GOOD
+const C_BAD := UiStyle.C_BAD
+
+## Equipamento recomendado (poder da arma) por tier, para o "Desafio" na escolha da caçada.
+const POWER_BY_TIER := {1: 48.0, 2: 70.0, 3: 100.0}
 
 var profile: Dictionary
 var _screen := "home"
@@ -24,24 +25,32 @@ var _wallet: Label
 var _back: Button
 var _logo: Label
 var _scroll: ScrollContainer
+var _page: Control
+var _stage: Control
+var _scene: MenuScene
+var _hunt_sel := ""
 var _reset_armed := false
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	theme = make_theme()
-	var bg := ColorRect.new()
-	bg.color = C_BG
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	add_child(UiStyle.background())
+	_scene = MenuScene.new()
+	add_child(_scene)
+	_stage = Control.new()
+	_stage.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_stage)
 
 	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right"]:
 		margin.add_theme_constant_override("margin_" + side, 40)
 	margin.add_theme_constant_override("margin_top", 16)
 	margin.add_theme_constant_override("margin_bottom", 8)
 	add_child(margin)
+	_page = margin
 
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 12)
@@ -51,12 +60,11 @@ func _ready() -> void:
 	top.add_theme_constant_override("separation", 16)
 	col.add_child(top)
 	_back = Button.new()
-	_back.text = "‹ Acampamento"
-	_back.flat = true
-	_back.add_theme_color_override("font_color", C_GOLD)
+	_back.text = "‹  Voltar"
+	_back.custom_minimum_size = Vector2(160, 50)
 	_back.pressed.connect(func(): go("home"))
 	top.add_child(_back)
-	_logo = _label("SUBA MONTE  ·  Caçadores da Montanha", 26, C_TEXT)
+	_logo = _label("", 30, C_TEXT)
 	top.add_child(_logo)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -76,43 +84,7 @@ func _ready() -> void:
 
 
 static func make_theme() -> Theme:
-	var t := Theme.new()
-	t.default_font_size = 22
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#1e1b29")
-	normal.border_color = C_LINE
-	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(14)
-	normal.content_margin_left = 20
-	normal.content_margin_right = 20
-	normal.content_margin_top = 12
-	normal.content_margin_bottom = 12
-	var hover := normal.duplicate()
-	hover.bg_color = Color("#2a2640")
-	var pressed := normal.duplicate()
-	pressed.bg_color = Color("#332e4d")
-	var disabled := normal.duplicate()
-	disabled.bg_color = Color("#1a1824")
-	disabled.border_color = Color("#2a2640")
-	for s in ["normal", "focus"]:
-		t.set_stylebox(s, "Button", normal)
-	t.set_stylebox("hover", "Button", hover)
-	t.set_stylebox("pressed", "Button", pressed)
-	t.set_stylebox("disabled", "Button", disabled)
-	t.set_color("font_color", "Button", C_TEXT)
-	t.set_color("font_disabled_color", "Button", Color(1, 1, 1, 0.35))
-	t.set_color("font_color", "Label", C_TEXT)
-	var panel := StyleBoxFlat.new()
-	panel.bg_color = C_CARD
-	panel.border_color = C_LINE
-	panel.set_border_width_all(2)
-	panel.set_corner_radius_all(16)
-	panel.content_margin_left = 20
-	panel.content_margin_right = 20
-	panel.content_margin_top = 16
-	panel.content_margin_bottom = 16
-	t.set_stylebox("panel", "PanelContainer", panel)
-	return t
+	return UiStyle.make_theme()
 
 
 func show_result(result: Dictionary, subiu: int) -> void:
@@ -153,14 +125,18 @@ func _label(text: String, size := 20, color := C_TEXT, wrap := false) -> Label:
 func _card(accent := Color(0, 0, 0, 0)) -> Array:
 	var pc := PanelContainer.new()
 	pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	pc.add_child(row)
 	if accent.a > 0:
-		var sb: StyleBoxFlat = theme.get_stylebox("panel", "PanelContainer").duplicate()
-		sb.border_color = accent
-		sb.border_width_left = 6
-		pc.add_theme_stylebox_override("panel", sb)
+		var strip := ColorRect.new()
+		strip.color = accent
+		strip.custom_minimum_size = Vector2(5, 0)
+		row.add_child(strip)
 	var v := VBoxContainer.new()
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.add_theme_constant_override("separation", 8)
-	pc.add_child(v)
+	row.add_child(v)
 	return [pc, v]
 
 
@@ -170,22 +146,39 @@ func _button(text: String, cb: Callable, primary := false, enabled := true) -> B
 	b.custom_minimum_size = Vector2(0, 60)
 	b.disabled = not enabled
 	if primary and enabled:
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = C_ACCENT
-		sb.set_corner_radius_all(14)
-		sb.content_margin_left = 20
-		sb.content_margin_right = 20
-		var sbp := sb.duplicate()
-		sbp.bg_color = C_ACCENT.darkened(0.15)
-		b.add_theme_stylebox_override("normal", sb)
-		b.add_theme_stylebox_override("hover", sb)
-		b.add_theme_stylebox_override("focus", sb)
-		b.add_theme_stylebox_override("pressed", sbp)
-		b.add_theme_color_override("font_color", Color("#1b0f05"))
-		b.add_theme_color_override("font_hover_color", Color("#1b0f05"))
-		b.add_theme_color_override("font_pressed_color", Color("#1b0f05"))
+		UiStyle.style_button(b, "gold", "gold_pressed")
 	b.pressed.connect(cb)
 	return b
+
+
+## Botão do menu principal: medalhão com ícone à esquerda, texto em caixa alta e seta.
+func _menu_button(text: String, icon: String, cb: Callable, selected := false, height := 58.0) -> Button:
+	var b := Button.new()
+	b.text = text.to_upper()
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(0, height)
+	b.add_theme_font_size_override("font_size", 24 if selected else 21)
+	var look := "selected" if selected else "normal"
+	for st in ["normal", "hover", "pressed", "focus"]:
+		var sb := UiStyle.box(look if st != "hover" else ("selected" if selected else "hover"), 18, 6)
+		if st == "pressed":
+			sb = UiStyle.box("pressed", 18, 6)
+		sb.content_margin_left = height + 8.0
+		b.add_theme_stylebox_override(st, sb)
+	var ic := MenuIcon.new(icon, height + 4.0, UiStyle.C_GOLD if selected else UiStyle.C_GLOW)
+	ic.position = Vector2(-6, -2)
+	b.add_child(ic)
+	if selected:
+		var arrow := _label("›", 40, Color.WHITE)
+		arrow.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+		arrow.position += Vector2(-30, -28)
+		b.add_child(arrow)
+	b.pressed.connect(cb)
+	return b
+
+
+func _stars(n: int, total := 3) -> String:
+	return "★".repeat(n) + "☆".repeat(maxi(0, total - n))
 
 
 func _el(el: String) -> String:
@@ -229,11 +222,17 @@ func render() -> void:
 		return
 	for c in _content.get_children():
 		c.queue_free()
-	var home := _screen == "home" and _result.is_empty()
-	_back.visible = not home
-	_logo.visible = home
+	for c in _stage.get_children():
+		c.queue_free()
+	var staged := _result.is_empty() and (_screen == "home" or _screen == "cacar")
+	_page.visible = not staged
+	_stage.visible = staged
+	_scene.visible = staged
+	_scene.viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if staged else SubViewport.UPDATE_DISABLED
 	_wallet.text = "Rank %d    Moedas %d" % [profile.rank, profile.moedas]
+	_logo.text = {"forja": "FORJA", "equip": "EQUIPAMENTO", "inventario": "INVENTÁRIO", "opcoes": "OPÇÕES"}.get(_screen, "")
 	if not _result.is_empty():
+		_logo.text = "RESULTADO"
 		_render_result()
 	else:
 		match _screen:
@@ -242,134 +241,274 @@ func render() -> void:
 			"forja": _render_forge()
 			"equip": _render_equip()
 			"inventario": _render_inventory()
+			"opcoes": _render_options()
 
 
+## Menu principal: logo, lista de botões à esquerda e a fera mais forte liberada em destaque.
 func _render_home() -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	_content.add_child(row)
+	var featured := _featured_beast()
+	_scene.show_beast(featured.id)
 
-	var left := VBoxContainer.new()
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.size_flags_stretch_ratio = 1.3
-	left.add_theme_constant_override("separation", 12)
-	row.add_child(left)
-	var hero: Array = _card(C_ACCENT)
-	left.add_child(hero[0])
-	hero[1].add_child(_label("O Monte espera, caçador.", 32, C_TEXT))
-	hero[1].add_child(_label("Cace feras, quebre suas partes, forje o equipamento delas e suba cada vez mais alto.", 20, C_MUTED, true))
-	var need := Formulas.xp_for_rank(profile.rank)
-	hero[1].add_child(_label("Rank %d  ·  %d/%d XP" % [profile.rank, profile.xp, need], 18, C_MUTED))
-	var xpbar := Hud.bar(C_ACCENT, Color("#1e1b29"), 12)
-	xpbar.value = float(profile.xp) / need
-	hero[1].add_child(xpbar)
-	var hunt_btn := _button("CAÇAR", func(): go("cacar"), true)
-	hunt_btn.custom_minimum_size = Vector2(0, 84)
-	hunt_btn.add_theme_font_size_override("font_size", 30)
-	left.add_child(hunt_btn)
-	var grid := GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 12)
-	for item in [["Forja", "forja"], ["Equipamento", "equip"], ["Inventário", "inventario"]]:
-		var b := _button(item[0], go.bind(item[1]))
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(b)
-	left.add_child(grid)
+	var title := HBoxContainer.new()
+	title.position = Vector2(40, 22)
+	title.add_theme_constant_override("separation", 14)
+	_stage.add_child(title)
+	title.add_child(MenuIcon.new("fera", 84, UiStyle.C_GOLD))
+	var tcol := VBoxContainer.new()
+	tcol.add_theme_constant_override("separation", -6)
+	title.add_child(tcol)
+	tcol.add_child(_label("SUBA MONTE", 56, Color.WHITE))
+	tcol.add_child(_label("CAÇADORES DA MONTANHA", 18, UiStyle.C_GLOW))
 
-	var load_card: Array = _card()
-	load_card[0].size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	row.add_child(load_card[0])
-	load_card[1].add_child(_label("LOADOUT", 16, C_MUTED))
+	_stage.add_child(_wallet_panel())
+
+	var menu := VBoxContainer.new()
+	menu.position = Vector2(48, 168)
+	menu.custom_minimum_size = Vector2(430, 0)
+	menu.add_theme_constant_override("separation", 10)
+	_stage.add_child(menu)
+	menu.add_child(_menu_button("Caçar", "cacar", go.bind("cacar"), true, 66))
+	menu.add_child(_menu_button("Forja", "forja", go.bind("forja")))
+	menu.add_child(_menu_button("Equipamento", "equip", go.bind("equip")))
+	menu.add_child(_menu_button("Inventário", "inventario", go.bind("inventario")))
+	menu.add_child(_menu_button("Opções", "opcoes", go.bind("opcoes"), false, 50))
+
+	# Equipamento atual (canto inferior esquerdo).
+	var load := PanelContainer.new()
+	load.position = Vector2(48, 560)
+	load.custom_minimum_size = Vector2(430, 0)
+	_stage.add_child(load)
+	var lv := VBoxContainer.new()
+	lv.add_theme_constant_override("separation", 2)
+	load.add_child(lv)
+	lv.add_child(_label("EQUIPADO", 15, C_MUTED))
 	for slot in ["arma", "armadura"]:
 		var id: String = profile.equipado[slot]
 		var g: Dictionary = GameData.GEAR[id]
 		var lvl: int = profile.equipamentos[id]
-		load_card[1].add_child(_label("%s +%d" % [g.nome, lvl], 22, C_TEXT))
-		load_card[1].add_child(_label("%s · %s" % [_stat(g, lvl), _el(g.elemento)], 18, GameData.element_color(g.elemento)))
-		if g.perk != "":
-			load_card[1].add_child(_label("%s: %s" % [GameData.PERKS[g.perk].nome, GameData.PERKS[g.perk].descricao], 16, C_GOLD, true))
+		lv.add_child(_label("%s +%d  ·  %s" % [g.nome, lvl, _stat(g, lvl)], 19, GameData.element_color(g.elemento).lightened(0.35)))
 
-	var gfx := HBoxContainer.new()
-	gfx.alignment = BoxContainer.ALIGNMENT_CENTER
-	gfx.add_theme_constant_override("separation", 10)
-	gfx.add_child(_label("Gráficos:", 18, C_MUTED))
+	# Nome da fera em destaque (canto inferior direito).
+	var tag := VBoxContainer.new()
+	tag.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	tag.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	tag.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	tag.position += Vector2(-40, -30)
+	tag.alignment = BoxContainer.ALIGNMENT_END
+	_stage.add_child(tag)
+	var n := _label(featured.nome.to_upper(), 34, Color.WHITE)
+	n.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	tag.add_child(n)
+	var ap := _label("%s  ·  %s" % [featured.apelido, _stars(featured.tier)], 18, UiStyle.C_GLOW)
+	ap.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	tag.add_child(ap)
+
+
+func _featured_beast() -> Dictionary:
+	var best: Dictionary = GameData.BEASTS[0]
+	for b in GameData.BEASTS:
+		if profile.rank >= b.rank_minimo and b.tier >= best.tier:
+			best = b
+	return best
+
+
+func _wallet_panel() -> PanelContainer:
+	var pc := PanelContainer.new()
+	pc.add_theme_stylebox_override("panel", UiStyle.box("panel_dark", 18, 8))
+	pc.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	pc.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	pc.position += Vector2(-30, 22)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	pc.add_child(v)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 22)
+	row.add_child(_label("● %d" % profile.moedas, 22, C_GOLD))
+	row.add_child(_label("RANK %d" % profile.rank, 22, Color.WHITE))
+	v.add_child(row)
+	var need := Formulas.xp_for_rank(profile.rank)
+	var xpbar := Hud.bar(UiStyle.C_GLOW, Color("#06111c"), 8)
+	xpbar.custom_minimum_size = Vector2(220, 8)
+	xpbar.value = float(profile.xp) / need
+	v.add_child(xpbar)
+	return pc
+
+
+func _render_options() -> void:
+	var gfx: Array = _card(UiStyle.C_GLOW)
+	_content.add_child(gfx[0])
+	gfx[1].add_child(_label("GRÁFICOS", 16, C_MUTED))
+	var grow := HBoxContainer.new()
+	grow.add_theme_constant_override("separation", 10)
 	for q in Settings.NOMES.size():
 		var on := Settings.quality() == q
 		var b := _button(Settings.NOMES[q], func():
 			Settings.set_quality(q)
-			render(), on)
-		b.custom_minimum_size = Vector2(130, 50)
-		gfx.add_child(b)
-	gfx.add_child(_label("Se travar, use Baixo.", 16, C_MUTED))
-	_content.add_child(gfx)
+			render())
+		if on:
+			UiStyle.style_button(b, "selected")
+		b.custom_minimum_size = Vector2(150, 54)
+		grow.add_child(b)
+	gfx[1].add_child(grow)
+	gfx[1].add_child(_label("Baixo: mais leve (30 FPS estáveis em celulares simples). Alto: sombras e mais vegetação.", 17, C_MUTED, true))
 
-	var look := HBoxContainer.new()
-	look.alignment = BoxContainer.ALIGNMENT_CENTER
-	look.add_theme_constant_override("separation", 10)
-	look.add_child(_label("Visual:", 18, C_MUTED))
+	var look: Array = _card(UiStyle.C_GLOW)
+	_content.add_child(look[0])
+	look[1].add_child(_label("VISUAL DO CAÇADOR", 16, C_MUTED))
+	var lrow := HBoxContainer.new()
+	lrow.add_theme_constant_override("separation", 10)
 	for id in Settings.VISUAIS:
 		var b := _button(Settings.VISUAIS[id], func():
 			Settings.set_outfit(id)
-			render(), Settings.outfit() == id)
-		b.custom_minimum_size = Vector2(150, 50)
-		look.add_child(b)
-	_content.add_child(look)
+			render())
+		if Settings.outfit() == id:
+			UiStyle.style_button(b, "selected")
+		b.custom_minimum_size = Vector2(170, 54)
+		lrow.add_child(b)
+	look[1].add_child(lrow)
 
-	var foot := HBoxContainer.new()
-	foot.alignment = BoxContainer.ALIGNMENT_CENTER
-	foot.add_child(_label("Progresso salvo neste aparelho.", 16, C_MUTED))
-	var reset := Button.new()
-	reset.flat = true
-	reset.text = "Toque de novo para apagar tudo" if _reset_armed else "Apagar progresso"
-	reset.add_theme_font_size_override("font_size", 16)
-	reset.add_theme_color_override("font_color", C_BAD if _reset_armed else C_MUTED)
-	reset.pressed.connect(func():
+	var data: Array = _card(C_BAD)
+	_content.add_child(data[0])
+	data[1].add_child(_label("PROGRESSO", 16, C_MUTED))
+	data[1].add_child(_label("Salvo neste aparelho.", 17, C_MUTED))
+	var reset := _button("Toque de novo para apagar tudo" if _reset_armed else "Apagar progresso", func():
 		if _reset_armed:
 			_reset_armed = false
 			_set_profile(ProfileLogic.reset_profile(), "Progresso apagado")
 		else:
 			_reset_armed = true
 			render())
-	foot.add_child(reset)
-	_content.add_child(foot)
+	reset.custom_minimum_size = Vector2(360, 54)
+	reset.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	if _reset_armed:
+		reset.add_theme_color_override("font_color", C_BAD)
+	data[1].add_child(reset)
 
 
+## Escolha da caçada: lista de ilhas à esquerda, mapa 3D no meio e detalhes à direita.
 func _render_hunts() -> void:
-	_content.add_child(_label("Escolha sua presa", 30))
-	var weapon: Dictionary = GameData.GEAR[profile.equipado.arma]
-	var grid := GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 14)
-	grid.add_theme_constant_override("v_separation", 14)
-	_content.add_child(grid)
+	if _hunt_sel == "":
+		_hunt_sel = _featured_beast().id
+	_scene.show_map(_hunt_sel, _unlocked)
+	var sel := GameData.beast_by_id(_hunt_sel)
+
+	var head := HBoxContainer.new()
+	head.position = Vector2(30, 16)
+	head.add_theme_constant_override("separation", 12)
+	_stage.add_child(head)
+	head.add_child(MenuIcon.new("cacar", 56, UiStyle.C_GOLD))
+	var hc := VBoxContainer.new()
+	hc.add_theme_constant_override("separation", -4)
+	head.add_child(hc)
+	hc.add_child(_label("CAÇAR", 32, Color.WHITE))
+	hc.add_child(_label("Ilhas do Monte", 16, UiStyle.C_GLOW))
+	_stage.add_child(_wallet_panel())
+
+	# Lista de ilhas
+	var list_panel := PanelContainer.new()
+	list_panel.add_theme_stylebox_override("panel", UiStyle.box("panel_dark", 10, 10))
+	list_panel.position = Vector2(30, 92)
+	list_panel.custom_minimum_size = Vector2(340, 0)
+	_stage.add_child(list_panel)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 6)
+	list_panel.add_child(list)
 	for b in GameData.BEASTS:
-		var locked: bool = profile.rank < b.rank_minimo
-		var c: Array = _card(GameData.element_color(b.elemento))
-		c[0].size_flags_vertical = Control.SIZE_FILL
-		grid.add_child(c[0])
-		var v: VBoxContainer = c[1]
-		v.add_child(_label(b.nome, 26, C_TEXT))
-		v.add_child(_label("%s  ·  Tier %d" % [b.apelido, b.tier], 16, C_MUTED))
-		v.add_child(_label(b.descricao, 17, C_TEXT, true))
-		var weak := GameData.weakness_of(b.elemento)
-		v.add_child(_label("Elemento: %s  ·  Fraca a: %s" % [_el(b.elemento), _el(weak) if weak != "" else "-"], 16, GameData.element_color(b.elemento).lightened(0.2), true))
-		var mult := Formulas.element_multiplier(weapon.elemento, b.elemento)
-		var mtxt := "vantagem x%.2f" % mult if mult > 1.0 else ("desvantagem x%.2f" % mult if mult < 1.0 else "neutro x1")
-		v.add_child(_label("Sua arma: " + mtxt, 16, C_GOOD if mult > 1.0 else (C_BAD if mult < 1.0 else C_MUTED)))
-		var best: Dictionary = profile.bestiario.get(b.id, {})
-		if not best.is_empty():
-			v.add_child(_label("Abates %d%s" % [best.abates, ("  ·  recorde %ds" % best.melhor_tempo) if best.melhor_tempo >= 0 else ""], 16, C_MUTED))
-		var sp := Control.new()
-		sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		v.add_child(sp)
-		if locked:
-			v.add_child(_button("Requer Rank %d" % b.rank_minimo, func(): pass, false, false))
-		else:
-			v.add_child(_button("Caçar", func(): hunt_requested.emit(b.id), true))
+		var open := _unlocked(b)
+		var btn := Button.new()
+		btn.text = "%s\n%s   %s" % [b.nome, ("Tier %d" % b.tier) if open else ("Requer Rank %d" % b.rank_minimo), _stars(b.tier)]
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.custom_minimum_size = Vector2(0, 72)
+		btn.add_theme_font_size_override("font_size", 19)
+		if b.id == _hunt_sel:
+			UiStyle.style_button(btn, "selected")
+		elif not open:
+			btn.add_theme_color_override("font_color", Color(1, 1, 1, 0.45))
+		var strip := ColorRect.new()
+		strip.color = GameData.element_color(b.elemento)
+		strip.custom_minimum_size = Vector2(5, 0)
+		strip.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+		strip.offset_left = 4
+		strip.offset_right = 9
+		strip.offset_top = 6
+		strip.offset_bottom = -6
+		strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(strip)
+		btn.pressed.connect(func():
+			_hunt_sel = b.id
+			render())
+		list.add_child(btn)
+
+	# Detalhes da ilha escolhida
+	var det := PanelContainer.new()
+	det.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	det.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	det.position += Vector2(-30, 92)
+	det.custom_minimum_size = Vector2(400, 0)
+	_stage.add_child(det)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 6)
+	det.add_child(v)
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 10)
+	name_row.add_child(MenuIcon.new("fera", 46, GameData.element_color(sel.elemento).lightened(0.3)))
+	var nc := VBoxContainer.new()
+	nc.add_theme_constant_override("separation", -4)
+	nc.add_child(_label(sel.nome, 28, Color.WHITE))
+	nc.add_child(_label("%s  ·  %s" % [sel.apelido, _stars(sel.tier)], 16, C_GOLD))
+	name_row.add_child(nc)
+	v.add_child(name_row)
+	var weapon: Dictionary = GameData.GEAR[profile.equipado.arma]
+	var power := Formulas.gear_value(weapon, profile.equipamentos[profile.equipado.arma])
+	var mult := Formulas.element_multiplier(weapon.elemento, sel.elemento)
+	var ratio: float = power * mult / POWER_BY_TIER[sel.tier]
+	var challenge: Array = ["LETAL", C_BAD] if ratio < 0.7 else (["DIFÍCIL", Color("#ffb070")] if ratio < 0.95 else (["NORMAL", C_TEXT] if ratio < 1.25 else ["FÁCIL", C_GOOD]))
+	var ch := PanelContainer.new()
+	ch.add_theme_stylebox_override("panel", UiStyle.box("panel_dark", 12, 6))
+	ch.add_child(_label("Desafio: %s  (com seu equipamento)" % challenge[0], 17, challenge[1]))
+	v.add_child(ch)
+	v.add_child(_label(sel.descricao, 16, C_TEXT, true))
+	var weak := GameData.weakness_of(sel.elemento)
+	v.add_child(_label("Elemento: %s  ·  Fraca a: %s" % [_el(sel.elemento), _el(weak)], 16, GameData.element_color(sel.elemento).lightened(0.3)))
+	var mtxt := "vantagem x%.2f" % mult if mult > 1.0 else ("desvantagem x%.2f" % mult if mult < 1.0 else "neutra")
+	v.add_child(_label("Sua arma: %s" % mtxt, 16, C_GOOD if mult > 1.0 else (C_BAD if mult < 1.0 else C_MUTED)))
+	v.add_child(_label("PARTES QUEBRÁVEIS", 14, C_MUTED))
+	var parts := []
+	for pt in sel.partes:
+		parts.append("%s → %s" % [pt.nome, GameData.material_name(pt.drop)])
+	v.add_child(_label("\n".join(parts), 15, C_TEXT, true))
+	v.add_child(_label("MATERIAIS", 14, C_MUTED))
+	var loot := []
+	for l in sel.loot:
+		loot.append(GameData.material_name(l.item))
+	v.add_child(_label(", ".join(loot), 15, C_TEXT, true))
+	var best: Dictionary = profile.bestiario.get(sel.id, {})
+	if not best.is_empty():
+		v.add_child(_label("Abates %d%s" % [best.abates, ("  ·  recorde %ds" % best.melhor_tempo) if best.melhor_tempo >= 0 else ""], 15, C_MUTED))
+
+	# Iniciar / voltar
+	var actions := HBoxContainer.new()
+	actions.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	actions.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	actions.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	actions.position += Vector2(-30, -24)
+	actions.add_theme_constant_override("separation", 12)
+	_stage.add_child(actions)
+	var back := _button("Voltar", go.bind("home"))
+	back.custom_minimum_size = Vector2(140, 64)
+	actions.add_child(back)
+	var open_sel := _unlocked(sel)
+	var start := _button("INICIAR" if open_sel else "Requer Rank %d" % sel.rank_minimo, func(): hunt_requested.emit(sel.id), true, open_sel)
+	start.custom_minimum_size = Vector2(250, 64)
+	start.add_theme_font_size_override("font_size", 30)
+	actions.add_child(start)
+
+
+func _unlocked(b: Dictionary) -> bool:
+	return profile.rank >= b.rank_minimo
 
 
 func _render_forge() -> void:
-	_content.add_child(_label("Forja", 30))
 	_content.add_child(_label("Fabricar é garantido, sem chance de falha. Partes quebradas dão materiais extras.", 18, C_MUTED, true))
 	_content.add_child(_label("FABRICAR", 16, C_MUTED))
 	var any := false
@@ -415,7 +554,6 @@ func _render_forge() -> void:
 
 
 func _render_equip() -> void:
-	_content.add_child(_label("Equipamento", 30))
 	_content.add_child(_label("Use a arma do elemento que vence a fera (Fogo > Natureza > Água > Fogo) e a armadura do mesmo elemento dela.", 18, C_MUTED, true))
 	for slot in ["arma", "armadura"]:
 		_content.add_child(_label("ARMAS" if slot == "arma" else "ARMADURAS", 16, C_MUTED))
@@ -454,7 +592,6 @@ func _inventory_grid(items: Dictionary) -> GridContainer:
 
 
 func _render_inventory() -> void:
-	_content.add_child(_label("Inventário", 30))
 	if profile.inventario.is_empty():
 		_content.add_child(_label("Vazio. Vá caçar!", 18, C_MUTED))
 	else:

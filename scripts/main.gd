@@ -33,9 +33,9 @@ func _ready() -> void:
 
 
 func _hub_shots() -> void:
-	for screen in ["home", "cacar", "forja"]:
+	for screen in ["home", "cacar", "forja", "opcoes"]:
 		hub.go(screen)
-		for i in 3:
+		for i in 12:
 			await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png("%s/godot-hub-%s.png" % [_args["hub-shot"], screen])
 	get_tree().quit()

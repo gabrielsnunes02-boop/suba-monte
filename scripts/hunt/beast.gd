@@ -169,6 +169,7 @@ func tick(dt: float) -> void:
 		flat = flat.normalized() * (Models.ARENA_RADIUS - 2.0)
 		position.x = flat.x
 		position.z = flat.y
+	position = Models.push_from_obstacles(position, radius)
 
 	_walk_phase += dt * 9.0 * moving
 	_animate(dt, moving)

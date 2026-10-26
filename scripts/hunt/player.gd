@@ -187,6 +187,7 @@ func tick(dt: float) -> void:
 		flat = flat.normalized() * (Models.ARENA_RADIUS - 1.0)
 		position.x = flat.x
 		position.z = flat.y
+	position = Models.push_from_obstacles(position, 0.5)
 	position.y = 0.0
 	if state != State.CAIDO:
 		hunt.beast.push_out(self, 0.5)

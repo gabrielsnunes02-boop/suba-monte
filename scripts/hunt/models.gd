@@ -6,6 +6,8 @@ const ARENA_RADIUS := 30.0
 
 static var _grass_shader: Shader
 static var _kit_meshes := {}
+## Troncos que bloqueiam a passagem dentro da arena: (x, raio, z). Refeito a cada arena.
+static var obstacles: Array[Vector3] = []
 
 const KIT_DIR := "res://assets/mundo/natureza/%s.gltf"
 ## Escala de cada peça do kit (as retorcidas e a vegetação rasteira vêm grandes demais).
@@ -281,8 +283,8 @@ static func build_arena(parent: Node3D, biome: Dictionary, rng: RandomNumberGene
 
 
 ## Malha de uma peça do kit Stylized Nature (Quaternius, CC0), com a transformação do arquivo aplicada.
-static func kit_mesh(model: String, detail := 1.0) -> Mesh:
-	var key := "%s|%s|%s" % [model, detail, Settings.preset().simples]
+static func kit_mesh(model: String, detail := 1.0, tint := Color.WHITE) -> Mesh:
+	var key := "%s|%s|%s|%s" % [model, detail, Settings.preset().simples, tint.to_html()]
 	if not _kit_meshes.has(key):
 		var scene: Node3D = load(KIT_DIR % model).instantiate()
 		var mi: MeshInstance3D = scene.find_children("*", "MeshInstance3D", true, false)[0]
@@ -308,9 +310,19 @@ static func kit_mesh(model: String, detail := 1.0) -> Mesh:
 			mesh = baked
 		if detail < 1.0:
 			mesh = _decimated(mesh, detail)
+		if tint != Color.WHITE and not (mesh is ArrayMesh and mesh != mi.mesh):
+			mesh = mesh.duplicate()
 		if Settings.preset().simples and mesh is ArrayMesh:
 			for s in mesh.get_surface_count():
 				(mesh as ArrayMesh).surface_set_material(s, simplified(mesh.surface_get_material(s)))
+		if tint != Color.WHITE:
+			# Folhagem mais escura e fechada nas regiões de mata (como nas florestas do MH).
+			for s in mesh.get_surface_count():
+				var m: Material = mesh.surface_get_material(s)
+				if m is StandardMaterial3D:
+					var d: StandardMaterial3D = m.duplicate()
+					d.albedo_color = d.albedo_color * tint
+					(mesh as ArrayMesh).surface_set_material(s, d)
 		_kit_meshes[key] = mesh
 		scene.free()
 	return _kit_meshes[key]
@@ -339,14 +351,14 @@ static func _decimated(mesh: Mesh, ratio: float) -> ArrayMesh:
 
 
 ## Espalha várias cópias de cada peça com um MultiMesh por peça (uma chamada de desenho cada).
-static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool, detail := {}) -> void:
+static func _scatter(parent: Node3D, placements: Dictionary, shadows: bool, detail := {}, tint := Color.WHITE) -> void:
 	for model in placements:
 		var xforms: Array = placements[model]
 		if xforms.is_empty():
 			continue
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = kit_mesh(model, detail.get(model, 1.0))
+		mm.mesh = kit_mesh(model, detail.get(model, 1.0), tint)
 		mm.instance_count = xforms.size()
 		for k in xforms.size():
 			mm.set_instance_transform(k, xforms[k])
@@ -389,19 +401,70 @@ static func _place_nature(parent: Node3D, biome: Dictionary, rng: RandomNumberGe
 		add.call(model, p, s)
 		detail[model] = preset.galhos
 		trees.append(Vector3(p.x, 1.8 * s, p.z))
+	# Algumas árvores dentro da borda da arena (como nas áreas do MH), com tronco sólido.
+	obstacles.clear()
+	for i in int(preset.arvores) / 4:
+		var p: Vector3 = ring.call(ARENA_RADIUS - 7.0, ARENA_RADIUS - 2.5)
+		var s := rng.randf_range(1.4, 2.0)
+		var model: String = tree_models[(i + 1) % tree_models.size()]
+		add.call(model, p, s)
+		detail[model] = preset.galhos
+		trees.append(Vector3(p.x, 1.8 * s, p.z))
+		obstacles.append(Vector3(p.x, 0.35 * s, p.z))
 	# Pedras médias, arbustos e plantas num anel intermediário.
 	for i in 8:
 		add.call(ROCKS[i % ROCKS.size()], ring.call(17.0, ARENA_RADIUS + 6.0), rng.randf_range(0.7, 1.5))
 	var plants: Array = biome.plantas
 	var details := int(preset.detalhes)
+	# Samambaias gigantes na borda, nas regiões úmidas.
+	if plants.has("Fern_1"):
+		for i in details / 3:
+			add.call("Fern_1", ring.call(ARENA_RADIUS - 3.0, ARENA_RADIUS + 7.0), rng.randf_range(1.6, 2.8))
 	for i in details:
 		add.call(plants[i % plants.size()], ring.call(12.0, ARENA_RADIUS + 6.0), rng.randf_range(0.7, 1.3))
 	# Pedrinhas e tufos baixos por toda a arena (pequenos, não atrapalham a luta).
 	for i in details / 2:
 		add.call(PEBBLES[i % PEBBLES.size()], ring.call(3.0, ARENA_RADIUS), rng.randf_range(0.8, 2.0))
 		add.call("Grass_Common_Short", ring.call(6.0, ARENA_RADIUS), rng.randf_range(0.6, 1.1))
-	_scatter(parent, placements, preset.sombras, detail)
+	_scatter(parent, placements, preset.sombras, detail, Color(biome.get("folhagem", "#ffffff")))
+	_fallen_logs(parent, rng, noise, lake)
 	return trees
+
+
+## Troncos caídos cobertos de musgo na borda do vale.
+static func _fallen_logs(parent: Node3D, rng: RandomNumberGenerator, noise: FastNoiseLite, lake: Vector3) -> void:
+	var bark := StandardMaterial3D.new()
+	bark.albedo_texture = load("res://assets/mundo/natureza/Bark_NormalTree.png")
+	bark.albedo_color = Color("#9a9078")
+	bark.uv1_scale = Vector3(2, 3, 1)
+	if Settings.preset().vertice:
+		bark.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
+	for i in 3:
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(ARENA_RADIUS + 0.5, ARENA_RADIUS + 6.0)
+		var pos := Vector3(cos(a) * r, 0, sin(a) * r)
+		if Vector2(pos.x - lake.x, pos.z - lake.y).length() < lake.z + 3.0:
+			continue
+		var radius := rng.randf_range(0.5, 0.85)
+		var length := rng.randf_range(6.0, 10.0)
+		pos.y = Terrain.height(noise, pos.x, pos.z) + radius * 0.6
+		# Deitado mais ou menos ao longo da borda.
+		var log := add_mesh(parent, cylinder(radius * 0.85, radius, length, 9), bark, pos)
+		log.basis = Basis(Vector3.UP, a + PI / 2 + rng.randf_range(-0.4, 0.4)) * Basis(Vector3.RIGHT, PI / 2)
+
+
+## Empurra um ponto para fora dos troncos sólidos (raio `r` de quem se move).
+static func push_from_obstacles(p: Vector3, r: float) -> Vector3:
+	for o in obstacles:
+		var d := Vector2(p.x - o.x, p.z - o.z)
+		var min_d := o.y + r
+		if d.length_squared() < min_d * min_d:
+			if d.length_squared() < 0.0001:
+				d = Vector2(1, 0)
+			d = d.normalized() * min_d
+			p.x = o.x + d.x
+			p.z = o.z + d.y
+	return p
 
 
 static func _water_mat() -> StandardMaterial3D:
